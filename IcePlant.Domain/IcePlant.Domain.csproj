@@ -1,12 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>12</LangVersion>
     <RootNamespace>IcePlant.Domain</RootNamespace>
-    <AssemblyName>Domain</AssemblyName>
+    <AssemblyName>IcePlant.Domain</AssemblyName>
     <!-- Domain has ZERO NuGet dependencies by design -->
   </PropertyGroup>
 
