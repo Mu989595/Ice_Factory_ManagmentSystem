@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+    <RootNamespace>IceFactoryManagmentSystem.Infrastructure</RootNamespace>
+    <AssemblyName>IceFactoryManagmentSystem.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- EF Core for SQL Server -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools"     Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+
+    <!-- Background services use IHostedService — included in .NET 8, no extra package needed -->
+  </ItemGroup>
+
+  <!-- Reference your Domain / existing project -->
+  <!--
+  <ItemGroup>
+    <ProjectReference Include="..\IceFactoryManagmentSystem.Domain\IceFactoryManagmentSystem.Domain.csproj" />
+  </ItemGroup>
+  -->
+
+</Project>
