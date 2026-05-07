@@ -1,30 +1,34 @@
-using IceFactoryManagmentSystem.Domain.Entities;
-using IceFactoryManagmentSystem.Infrastructure.Persistence;
+﻿using IcePlant.Domain.Aggregates.Basin;
+using IcePlant.Domain.Aggregates.Finance;
+using IcePlant.Domain.Aggregates.HR;
+using IcePlant.Domain.Aggregates.Monthly;
+using IcePlant.Domain.Interfaces.Repositories;
+using IcePlant.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace IceFactoryManagmentSystem.Infrastructure.Repositories;
+namespace IcePlant.Infrastructure.Repositories;
 
-// ── Expense Category ──────────────────────────────────────────────────────────
+// â”€â”€ Expense Category â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 public interface IExpenseCategoryRepository
 {
-    Task<expense_categories?> GetByIdAsync(int id, CancellationToken ct = default);
-    Task<IReadOnlyList<expense_categories>> GetAllAsync(CancellationToken ct = default);
-    Task<IReadOnlyList<expense_categories>> GetByTypeAsync(string parentType, CancellationToken ct = default);
+    Task<ExpenseCategory?> GetByIdAsync(int id, CancellationToken ct = default);
+    Task<IReadOnlyList<ExpenseCategory>> GetAllAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<ExpenseCategory>> GetByTypeAsync(string parentType, CancellationToken ct = default);
 }
 
 public class ExpenseCategoryRepository
-    : BaseRepository<expense_categories>, IExpenseCategoryRepository
+    : BaseRepository<ExpenseCategory>, IExpenseCategoryRepository
 {
     public ExpenseCategoryRepository(AppDbContext context) : base(context) { }
 
-    public async Task<expense_categories?> GetByIdAsync(int id, CancellationToken ct = default)
+    public async Task<ExpenseCategory?> GetByIdAsync(int id, CancellationToken ct = default)
         => await _dbSet.FindAsync([id], ct);
 
-    public async Task<IReadOnlyList<expense_categories>> GetAllAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<ExpenseCategory>> GetAllAsync(CancellationToken ct = default)
         => await _dbSet.AsNoTracking().OrderBy(c => c.ParentType).ThenBy(c => c.Name).ToListAsync(ct);
 
-    public async Task<IReadOnlyList<expense_categories>> GetByTypeAsync(
+    public async Task<IReadOnlyList<ExpenseCategory>> GetByTypeAsync(
         string parentType,
         CancellationToken ct = default)
         => await _dbSet
@@ -34,7 +38,7 @@ public class ExpenseCategoryRepository
             .ToListAsync(ct);
 }
 
-// ── Expense ───────────────────────────────────────────────────────────────────
+// â”€â”€ Expense â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 public interface IExpenseRepository
 {
@@ -95,3 +99,4 @@ public class ExpenseRepository : BaseRepository<Expense>, IExpenseRepository
     public async Task AddAsync(Expense expense, CancellationToken ct = default)
         => await _dbSet.AddAsync(expense, ct);
 }
+

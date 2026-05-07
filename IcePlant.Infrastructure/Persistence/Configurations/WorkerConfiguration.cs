@@ -1,4 +1,4 @@
-using IcePlant.Domain.Aggregates.HR;
+﻿using IcePlant.Domain.Aggregates.HR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -46,3 +46,4 @@ public class WorkerConfiguration : IEntityTypeConfiguration<Worker>
         });
     }
 }
+

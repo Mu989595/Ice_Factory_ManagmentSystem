@@ -1,3 +1,5 @@
+using IcePlant.Domain.Common;
+
 namespace IcePlant.Domain.Interfaces;
 
 /// <summary>

@@ -1,10 +1,14 @@
-using IceFactoryManagmentSystem.Domain.Entities;
-using IceFactoryManagmentSystem.Infrastructure.Persistence;
+﻿using IcePlant.Domain.Aggregates.Basin;
+using IcePlant.Domain.Aggregates.Finance;
+using IcePlant.Domain.Aggregates.HR;
+using IcePlant.Domain.Aggregates.Monthly;
+using IcePlant.Domain.Interfaces.Repositories;
+using IcePlant.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace IceFactoryManagmentSystem.Infrastructure.Repositories;
+namespace IcePlant.Infrastructure.Repositories;
 
-// ── Worker ────────────────────────────────────────────────────────────────────
+// â”€â”€ Worker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 public interface IWorkerRepository
 {
@@ -35,7 +39,7 @@ public class WorkerRepository : BaseRepository<Worker>, IWorkerRepository
         => _context.Entry(worker).State = EntityState.Modified;
 }
 
-// ── Daily Attendance ──────────────────────────────────────────────────────────
+// â”€â”€ Daily Attendance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 public interface IAttendanceRepository
 {
@@ -79,3 +83,4 @@ public class AttendanceRepository : BaseRepository<DailyAttendance>, IAttendance
     public void Update(DailyAttendance attendance)
         => _context.Entry(attendance).State = EntityState.Modified;
 }
+

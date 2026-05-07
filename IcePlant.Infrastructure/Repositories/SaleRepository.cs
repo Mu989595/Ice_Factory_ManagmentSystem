@@ -1,30 +1,34 @@
-using IceFactoryManagmentSystem.Domain.Entities;
-using IceFactoryManagmentSystem.Infrastructure.Persistence;
+﻿using IcePlant.Domain.Aggregates.Basin;
+using IcePlant.Domain.Aggregates.Finance;
+using IcePlant.Domain.Aggregates.HR;
+using IcePlant.Domain.Aggregates.Monthly;
+using IcePlant.Domain.Interfaces.Repositories;
+using IcePlant.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace IceFactoryManagmentSystem.Infrastructure.Repositories;
+namespace IcePlant.Infrastructure.Repositories;
 
 public interface ISaleRepository
 {
-    Task<Sales?> GetByIdAsync(int id, CancellationToken ct = default);
-    Task<Sales?> GetLastSaleForDayAsync(DateOnly date, CancellationToken ct = default);
+    Task<Sale?> GetByIdAsync(int id, CancellationToken ct = default);
+    Task<Sale?> GetLastSaleForDayAsync(DateOnly date, CancellationToken ct = default);
     Task<int>    GetBlocksSoldSinceLastReplenishAsync(DateOnly date, CancellationToken ct = default);
-    Task<IReadOnlyList<Sales>> GetByDateAsync(DateOnly date, CancellationToken ct = default);
-    Task AddAsync(Sales sale, CancellationToken ct = default);
+    Task<IReadOnlyList<Sale>> GetByDateAsync(DateOnly date, CancellationToken ct = default);
+    Task AddAsync(Sale sale, CancellationToken ct = default);
 }
 
-public class SaleRepository : BaseRepository<Sales>, ISaleRepository
+public class SaleRepository : BaseRepository<Sale>, ISaleRepository
 {
     public SaleRepository(AppDbContext context) : base(context) { }
 
-    public async Task<Sales?> GetByIdAsync(int id, CancellationToken ct = default)
+    public async Task<Sale?> GetByIdAsync(int id, CancellationToken ct = default)
         => await _dbSet.FindAsync([id], ct);
 
     /// <summary>
     /// Returns the most recent sale for the given day.
     /// Used by the replenishment service to calculate freeze elapsed time.
     /// </summary>
-    public async Task<Sales?> GetLastSaleForDayAsync(DateOnly date, CancellationToken ct = default)
+    public async Task<Sale?> GetLastSaleForDayAsync(DateOnly date, CancellationToken ct = default)
         => await _dbSet
             .AsNoTracking()
             .Where(s => s.LedgerDay.DayDate == date)
@@ -58,13 +62,14 @@ public class SaleRepository : BaseRepository<Sales>, ISaleRepository
         return await query.SumAsync(s => (int?)s.BlocksSold ?? 0, ct);
     }
 
-    public async Task<IReadOnlyList<Sales>> GetByDateAsync(DateOnly date, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Sale>> GetByDateAsync(DateOnly date, CancellationToken ct = default)
         => await _dbSet
             .AsNoTracking()
             .Where(s => s.LedgerDay.DayDate == date)
             .OrderBy(s => s.SaleTime)
             .ToListAsync(ct);
 
-    public async Task AddAsync(Sales sale, CancellationToken ct = default)
+    public async Task AddAsync(Sale sale, CancellationToken ct = default)
         => await _dbSet.AddAsync(sale, ct);
 }
+

@@ -21,4 +21,16 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="tests\**" />
+    <Compile Remove="WebApi\**" />
+    <Compile Remove="IceFactory.Api\**" />
+    <EmbeddedResource Remove="tests\**" />
+    <EmbeddedResource Remove="WebApi\**" />
+    <EmbeddedResource Remove="IceFactory.Api\**" />
+    <None Remove="tests\**" />
+    <None Remove="WebApi\**" />
+    <None Remove="IceFactory.Api\**" />
+  </ItemGroup>
+
 </Project>

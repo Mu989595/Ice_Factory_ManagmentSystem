@@ -1,8 +1,12 @@
-using IceFactoryManagmentSystem.Domain.Entities;
+﻿using IcePlant.Domain.Aggregates.Basin;
+using IcePlant.Domain.Aggregates.Finance;
+using IcePlant.Domain.Aggregates.HR;
+using IcePlant.Domain.Aggregates.Monthly;
+using IcePlant.Domain.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace IceFactoryManagmentSystem.Infrastructure.Persistence.Configurations;
+namespace IcePlant.Infrastructure.Persistence.Configurations;
 
 public class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
 {
@@ -40,7 +44,8 @@ public class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
         builder.Property(x => x.Notes)
                .HasMaxLength(300);
 
-        // ── Index: fast monthly expense aggregation ──────────────────────────
+        // â”€â”€ Index: fast monthly expense aggregation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         builder.HasIndex(x => new { x.LedgerDayId, x.CategoryId });
     }
 }
+

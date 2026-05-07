@@ -1,14 +1,18 @@
-using IceFactoryManagmentSystem.Domain.Entities;
+﻿using IcePlant.Domain.Aggregates.Basin;
+using IcePlant.Domain.Aggregates.Finance;
+using IcePlant.Domain.Aggregates.HR;
+using IcePlant.Domain.Aggregates.Monthly;
+using IcePlant.Domain.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace IceFactoryManagmentSystem.Infrastructure.Persistence.Configurations;
+namespace IcePlant.Infrastructure.Persistence.Configurations;
 
-public class LedgerDayConfiguration : IEntityTypeConfiguration<ledger_days>
+public class LedgerDayConfiguration : IEntityTypeConfiguration<LedgerDay>
 {
-    public void Configure(EntityTypeBuilder<ledger_days> builder)
+    public void Configure(EntityTypeBuilder<LedgerDay> builder)
     {
-        builder.ToTable("ledger_days");
+        builder.ToTable("LedgerDay");
 
         builder.HasKey(x => x.Id);
 
@@ -38,8 +42,8 @@ public class LedgerDayConfiguration : IEntityTypeConfiguration<ledger_days>
                .IsRequired()
                .HasDefaultValueSql("GETUTCDATE()");
 
-        // ── Relationships ───────────────────────────────────────────────────
-        builder.HasMany(x => x.Sales)
+        // â”€â”€ Relationships â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        builder.HasMany(x => x.Sale)
                .WithOne(s => s.LedgerDay)
                .HasForeignKey(s => s.LedgerDayId)
                .OnDelete(DeleteBehavior.Restrict);
@@ -60,3 +64,4 @@ public class LedgerDayConfiguration : IEntityTypeConfiguration<ledger_days>
                .OnDelete(DeleteBehavior.Restrict);
     }
 }
+

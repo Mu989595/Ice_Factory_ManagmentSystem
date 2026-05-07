@@ -1,27 +1,31 @@
-using IceFactoryManagmentSystem.Domain.Entities;
-using IceFactoryManagmentSystem.Infrastructure.Persistence;
+﻿using IcePlant.Domain.Aggregates.Basin;
+using IcePlant.Domain.Aggregates.Finance;
+using IcePlant.Domain.Aggregates.HR;
+using IcePlant.Domain.Aggregates.Monthly;
+using IcePlant.Domain.Interfaces.Repositories;
+using IcePlant.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace IceFactoryManagmentSystem.Infrastructure.Repositories;
+namespace IcePlant.Infrastructure.Repositories;
 
 public interface ILedgerDayRepository
 {
-    Task<ledger_days?> GetByDateAsync(DateOnly date, CancellationToken ct = default);
-    Task<ledger_days>  GetOrCreateAsync(DateOnly date, int openingStock, CancellationToken ct = default);
-    Task<IReadOnlyList<ledger_days>> GetRangeAsync(DateOnly from, DateOnly to, CancellationToken ct = default);
+    Task<LedgerDay?> GetByDateAsync(DateOnly date, CancellationToken ct = default);
+    Task<LedgerDay>  GetOrCreateAsync(DateOnly date, int openingStock, CancellationToken ct = default);
+    Task<IReadOnlyList<LedgerDay>> GetRangeAsync(DateOnly from, DateOnly to, CancellationToken ct = default);
     Task<decimal> GetTotalIncomeAsync(int year, int month, CancellationToken ct = default);
     Task<decimal> GetTotalExpensesAsync(int year, int month, CancellationToken ct = default);
-    Task AddAsync(ledger_days ledgerDay, CancellationToken ct = default);
-    void Update(ledger_days ledgerDay);
+    Task AddAsync(LedgerDay ledgerDay, CancellationToken ct = default);
+    void Update(LedgerDay ledgerDay);
 }
 
-public class LedgerDayRepository : BaseRepository<ledger_days>, ILedgerDayRepository
+public class LedgerDayRepository : BaseRepository<LedgerDay>, ILedgerDayRepository
 {
     public LedgerDayRepository(AppDbContext context) : base(context) { }
 
-    public async Task<ledger_days?> GetByDateAsync(DateOnly date, CancellationToken ct = default)
+    public async Task<LedgerDay?> GetByDateAsync(DateOnly date, CancellationToken ct = default)
         => await _dbSet
-            .Include(l => l.Sales)
+            .Include(l => l.Sale)
             .Include(l => l.Expenses)
                 .ThenInclude(e => e.Category)
             .Include(l => l.DailyAttendances)
@@ -31,9 +35,9 @@ public class LedgerDayRepository : BaseRepository<ledger_days>, ILedgerDayReposi
 
     /// <summary>
     /// Returns the ledger day for the given date, creating it if it doesn't exist.
-    /// openingStock is only used when creating — it's ignored if the row already exists.
+    /// openingStock is only used when creating â€” it's ignored if the row already exists.
     /// </summary>
-    public async Task<ledger_days> GetOrCreateAsync(
+    public async Task<LedgerDay> GetOrCreateAsync(
         DateOnly date,
         int      openingStock,
         CancellationToken ct = default)
@@ -44,7 +48,7 @@ public class LedgerDayRepository : BaseRepository<ledger_days>, ILedgerDayReposi
         if (existing is not null)
             return existing;
 
-        var newDay = new ledger_days
+        var newDay = new LedgerDay
         {
             DayDate      = date,
             OpeningStock = openingStock,
@@ -56,23 +60,23 @@ public class LedgerDayRepository : BaseRepository<ledger_days>, ILedgerDayReposi
         return newDay;
     }
 
-    public async Task<IReadOnlyList<ledger_days>> GetRangeAsync(
+    public async Task<IReadOnlyList<LedgerDay>> GetRangeAsync(
         DateOnly from,
         DateOnly to,
         CancellationToken ct = default)
         => await _dbSet
             .AsNoTracking()
             .Where(l => l.DayDate >= from && l.DayDate <= to)
-            .Include(l => l.Sales)
+            .Include(l => l.Sale)
             .Include(l => l.Expenses)
             .OrderBy(l => l.DayDate)
             .ToListAsync(ct);
 
     /// <summary>
-    /// Aggregates total sales income for a given month.
+    /// Aggregates total Sale income for a given month.
     /// </summary>
     public async Task<decimal> GetTotalIncomeAsync(int year, int month, CancellationToken ct = default)
-        => await _context.Sales
+        => await _context.Sale
             .AsNoTracking()
             .Where(s => s.LedgerDay.DayDate.Year  == year
                      && s.LedgerDay.DayDate.Month == month)
@@ -88,9 +92,10 @@ public class LedgerDayRepository : BaseRepository<ledger_days>, ILedgerDayReposi
                      && e.LedgerDay.DayDate.Month == month)
             .SumAsync(e => e.Amount, ct);
 
-    public async Task AddAsync(ledger_days ledgerDay, CancellationToken ct = default)
+    public async Task AddAsync(LedgerDay ledgerDay, CancellationToken ct = default)
         => await _dbSet.AddAsync(ledgerDay, ct);
 
-    public void Update(ledger_days ledgerDay)
+    public void Update(LedgerDay ledgerDay)
         => _context.Entry(ledgerDay).State = EntityState.Modified;
 }
+

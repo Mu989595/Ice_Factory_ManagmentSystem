@@ -1,9 +1,9 @@
-using IceFactoryManagmentSystem.Infrastructure.UnitOfWork;
+﻿using IcePlant.Infrastructure.UnitOfWork;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace IceFactoryManagmentSystem.Infrastructure.BackgroundJobs;
+namespace IcePlant.Infrastructure.BackgroundJobs;
 
 /// <summary>
 /// Runs at midnight (00:01 AM UTC) every day.
@@ -65,10 +65,10 @@ public class DayRolloverBackgroundService : BackgroundService
         var yesterday = DateOnly.FromDateTime(now.AddDays(-1));
         var today     = DateOnly.FromDateTime(now);
 
-        // ── 1. Get the basin's current stock ──────────────────────────────────
+        // â”€â”€ 1. Get the basin's current stock â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var basin = await uow.Basin.GetSingletonAsync(ct);
 
-        // ── 2. Close yesterday's ledger with final closing stock ──────────────
+        // â”€â”€ 2. Close yesterday's ledger with final closing stock â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var yesterdayLedger = await uow.LedgerDays.GetByDateAsync(yesterday, ct);
         if (yesterdayLedger is not null)
         {
@@ -76,7 +76,7 @@ public class DayRolloverBackgroundService : BackgroundService
             uow.LedgerDays.Update(yesterdayLedger);
         }
 
-        // ── 3. Create today's ledger — opening stock = basin's current stock ──
+        // â”€â”€ 3. Create today's ledger â€” opening stock = basin's current stock â”€â”€
         await uow.LedgerDays.GetOrCreateAsync(today, basin.CurrentStock, ct);
 
         await uow.SaveChangesAsync(ct);
@@ -86,3 +86,4 @@ public class DayRolloverBackgroundService : BackgroundService
             yesterday, today, basin.CurrentStock);
     }
 }
+

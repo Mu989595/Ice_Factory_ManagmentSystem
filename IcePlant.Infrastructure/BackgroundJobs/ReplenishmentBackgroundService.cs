@@ -1,13 +1,17 @@
-using IceFactoryManagmentSystem.Domain.Entities;
-using IceFactoryManagmentSystem.Infrastructure.Persistence;
-using IceFactoryManagmentSystem.Infrastructure.Repositories;
-using IceFactoryManagmentSystem.Infrastructure.UnitOfWork;
+﻿using IcePlant.Domain.Aggregates.Basin;
+using IcePlant.Domain.Aggregates.Finance;
+using IcePlant.Domain.Aggregates.HR;
+using IcePlant.Domain.Aggregates.Monthly;
+using IcePlant.Domain.Interfaces.Repositories;
+using IcePlant.Infrastructure.Persistence;
+using IcePlant.Infrastructure.Repositories;
+using IcePlant.Infrastructure.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace IceFactoryManagmentSystem.Infrastructure.BackgroundJobs;
+namespace IcePlant.Infrastructure.BackgroundJobs;
 
 /// <summary>
 /// Polls every 15 minutes and adds blocks back to the basin
@@ -16,7 +20,7 @@ namespace IceFactoryManagmentSystem.Infrastructure.BackgroundJobs;
 /// Flow:
 ///   1. Get current basin state
 ///   2. Find the last sale time today
-///   3. If FreezeHours have elapsed since the last sale → replenish
+///   3. If FreezeHours have elapsed since the last sale â†’ replenish
 ///   4. Only replenish once per freeze cycle (check production_cycles table)
 ///   5. Write an audit row to production_cycles
 /// </summary>
@@ -48,13 +52,13 @@ public class ReplenishmentBackgroundService : BackgroundService
             }
             catch (OperationCanceledException)
             {
-                // Graceful shutdown — exit the loop
+                // Graceful shutdown â€” exit the loop
                 break;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during replenishment evaluation.");
-                // Do NOT crash the service — log and continue polling
+                // Do NOT crash the service â€” log and continue polling
             }
         }
 
@@ -70,7 +74,7 @@ public class ReplenishmentBackgroundService : BackgroundService
         var now   = DateTime.UtcNow;
         var today = DateOnly.FromDateTime(now);
 
-        // ── Step 1: Get basin ─────────────────────────────────────────────────
+        // â”€â”€ Step 1: Get basin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var basin = await uow.Basin.GetSingletonAsync(ct);
 
         if (basin.CurrentStock >= basin.MaxCapacity)
@@ -80,12 +84,12 @@ public class ReplenishmentBackgroundService : BackgroundService
             return;
         }
 
-        // ── Step 2: Get last sale time today ─────────────────────────────────
-        var lastSale = await uow.Sales.GetLastSaleForDayAsync(today, ct);
+        // â”€â”€ Step 2: Get last sale time today â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        var lastSale = await uow.Sale.GetLastSaleForDayAsync(today, ct);
 
-        DateTime referenceTime = lastSale?.SaleTime ?? now.Date; // start of day if no sales
+        DateTime referenceTime = lastSale?.SaleTime ?? now.Date; // start of day if no Sale
 
-        // ── Step 3: Check if freeze cycle has completed ───────────────────────
+        // â”€â”€ Step 3: Check if freeze cycle has completed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         double hoursElapsed = (now - referenceTime).TotalHours;
 
         if (hoursElapsed < (double)basin.FreezeHours)
@@ -96,7 +100,7 @@ public class ReplenishmentBackgroundService : BackgroundService
             return;
         }
 
-        // ── Step 4: Prevent double-replenishment in same cycle ────────────────
+        // â”€â”€ Step 4: Prevent double-replenishment in same cycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         bool alreadyFired = await uow.ProductionCycles
             .ExistsAfterAsync(referenceTime, today, ct);
 
@@ -106,8 +110,8 @@ public class ReplenishmentBackgroundService : BackgroundService
             return;
         }
 
-        // ── Step 5: Calculate how many blocks to add back ─────────────────────
-        int blocksToAdd = await uow.Sales
+        // â”€â”€ Step 5: Calculate how many blocks to add back â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        int blocksToAdd = await uow.Sale
             .GetBlocksSoldSinceLastReplenishAsync(today, ct);
 
         if (blocksToAdd <= 0)
@@ -121,16 +125,16 @@ public class ReplenishmentBackgroundService : BackgroundService
         int actualAdded   = Math.Min(blocksToAdd, freeSlots);
         int stockBefore   = basin.CurrentStock;
 
-        // ── Step 6: Update basin ──────────────────────────────────────────────
+        // â”€â”€ Step 6: Update basin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         basin.CurrentStock  += actualAdded;
         basin.LastUpdatedAt  = now;
         uow.Basin.Update(basin);
 
-        // ── Step 7: Get or create today's ledger day for FK ───────────────────
+        // â”€â”€ Step 7: Get or create today's ledger day for FK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var ledgerDay = await uow.LedgerDays.GetOrCreateAsync(today, basin.CurrentStock, ct);
         await uow.SaveChangesAsync(ct); // ensure ledger day has an Id
 
-        // ── Step 8: Write audit record ────────────────────────────────────────
+        // â”€â”€ Step 8: Write audit record â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         var cycle = new ProductionCycle
         {
             LedgerDayId   = ledgerDay.Id,
@@ -145,7 +149,8 @@ public class ReplenishmentBackgroundService : BackgroundService
         await uow.SaveChangesAsync(ct);
 
         _logger.LogInformation(
-            "Auto-replenishment complete. +{Blocks} blocks. Stock: {Before} → {After}.",
+            "Auto-replenishment complete. +{Blocks} blocks. Stock: {Before} â†’ {After}.",
             actualAdded, stockBefore, basin.CurrentStock);
     }
 }
+

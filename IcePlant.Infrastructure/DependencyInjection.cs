@@ -1,11 +1,11 @@
-using IceFactoryManagmentSystem.Infrastructure.BackgroundJobs;
-using IceFactoryManagmentSystem.Infrastructure.Persistence;
-using IceFactoryManagmentSystem.Infrastructure.UnitOfWork;
+using IcePlant.Infrastructure.BackgroundJobs;
+using IcePlant.Infrastructure.Persistence;
+using IcePlant.Infrastructure.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace IceFactoryManagmentSystem.Infrastructure;
+namespace IcePlant.Infrastructure;
 
 /// <summary>
 /// Single entry point to register the entire Infrastructure layer.
@@ -17,7 +17,7 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration          configuration)
     {
-        // ── Database ──────────────────────────────────────────────────────────
+        // â”€â”€ Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"),
@@ -33,13 +33,22 @@ public static class DependencyInjection
                         errorNumbersToAdd:   null);
                 }));
 
-        // ── Unit of Work ──────────────────────────────────────────────────────
+        // â”€â”€ Unit of Work â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         services.AddScoped<IUnitOfWork, UnitOfWork.UnitOfWork>();
 
-        // ── Background Services ───────────────────────────────────────────────
+        // â”€â”€ Background Services â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         services.AddHostedService<ReplenishmentBackgroundService>();
         services.AddHostedService<DayRolloverBackgroundService>();
 
+        // ── Repositories ──────────────────────────────────────────────────────
+        services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IBasinRepository, Repositories.BasinRepository>();
+        services.AddScoped<IcePlant.Domain.Interfaces.Repositories.ILedgerDayRepository, Repositories.LedgerDayRepository>();
+        services.AddScoped<IcePlant.Domain.Interfaces.Repositories.ISaleRepository, Repositories.SaleRepository>();
+        services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IExpenseRepository, Repositories.ExpenseRepository>();
+        services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IWorkerRepository, Repositories.WorkerRepository>();
+        services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IAttendanceRepository, Repositories.AttendanceRepository>();
+        services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IMonthlySummaryRepository, Repositories.MonthlySummaryRepository>();
+        
         return services;
     }
 
@@ -55,3 +64,4 @@ public static class DependencyInjection
         await context.Database.MigrateAsync();
     }
 }
+

@@ -1,14 +1,18 @@
-using IceFactoryManagmentSystem.Domain.Entities;
+﻿using IcePlant.Domain.Aggregates.Basin;
+using IcePlant.Domain.Aggregates.Finance;
+using IcePlant.Domain.Aggregates.HR;
+using IcePlant.Domain.Aggregates.Monthly;
+using IcePlant.Domain.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace IceFactoryManagmentSystem.Infrastructure.Persistence.Configurations;
+namespace IcePlant.Infrastructure.Persistence.Configurations;
 
-public class SaleConfiguration : IEntityTypeConfiguration<Sales>
+public class SaleConfiguration : IEntityTypeConfiguration<Sale>
 {
-    public void Configure(EntityTypeBuilder<Sales> builder)
+    public void Configure(EntityTypeBuilder<Sale> builder)
     {
-        builder.ToTable("sales");
+        builder.ToTable("Sale");
 
         builder.HasKey(x => x.Id);
 
@@ -44,7 +48,8 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sales>
         builder.Property(x => x.Notes)
                .HasMaxLength(300);
 
-        // ── Index: fast lookup of last sale per day (used by replenishment) ─
+        // â”€â”€ Index: fast lookup of last sale per day (used by replenishment) â”€
         builder.HasIndex(x => new { x.LedgerDayId, x.SaleTime });
     }
 }
+

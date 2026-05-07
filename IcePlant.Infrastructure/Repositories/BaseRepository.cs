@@ -1,11 +1,11 @@
-using IceFactoryManagmentSystem.Infrastructure.Persistence;
+﻿using IcePlant.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace IceFactoryManagmentSystem.Infrastructure.Repositories;
+namespace IcePlant.Infrastructure.Repositories;
 
 /// <summary>
-/// Generic repository — handles common CRUD that all repositories share.
+/// Generic repository â€” handles common CRUD that all repositories share.
 /// Specific repositories inherit this and add domain-specific queries.
 /// </summary>
 public abstract class BaseRepository<T> where T : class
@@ -44,3 +44,4 @@ public abstract class BaseRepository<T> where T : class
         CancellationToken ct = default)
         => await _dbSet.AnyAsync(predicate, ct);
 }
+

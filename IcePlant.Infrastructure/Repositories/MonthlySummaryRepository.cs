@@ -1,10 +1,14 @@
-using IceFactoryManagmentSystem.Domain.Entities;
-using IceFactoryManagmentSystem.Infrastructure.Persistence;
+﻿using IcePlant.Domain.Aggregates.Basin;
+using IcePlant.Domain.Aggregates.Finance;
+using IcePlant.Domain.Aggregates.HR;
+using IcePlant.Domain.Aggregates.Monthly;
+using IcePlant.Domain.Interfaces.Repositories;
+using IcePlant.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace IceFactoryManagmentSystem.Infrastructure.Repositories;
+namespace IcePlant.Infrastructure.Repositories;
 
-// ── Monthly Summary ───────────────────────────────────────────────────────────
+// â”€â”€ Monthly Summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 public interface IMonthlySummaryRepository
 {
@@ -45,7 +49,7 @@ public class MonthlySummaryRepository
         => _context.Entry(summary).State = EntityState.Modified;
 }
 
-// ── Production Cycle ──────────────────────────────────────────────────────────
+// â”€â”€ Production Cycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 public interface IProductionCycleRepository
 {
@@ -82,3 +86,4 @@ public class ProductionCycleRepository
     public async Task AddAsync(ProductionCycle cycle, CancellationToken ct = default)
         => await _dbSet.AddAsync(cycle, ct);
 }
+

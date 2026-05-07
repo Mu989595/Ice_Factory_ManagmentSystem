@@ -1,8 +1,12 @@
-using IceFactoryManagmentSystem.Domain.Entities;
+﻿using IcePlant.Domain.Aggregates.Basin;
+using IcePlant.Domain.Aggregates.Finance;
+using IcePlant.Domain.Aggregates.HR;
+using IcePlant.Domain.Aggregates.Monthly;
+using IcePlant.Domain.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace IceFactoryManagmentSystem.Infrastructure.Persistence.Configurations;
+namespace IcePlant.Infrastructure.Persistence.Configurations;
 
 public class ProductionCycleConfiguration : IEntityTypeConfiguration<ProductionCycle>
 {
@@ -41,3 +45,4 @@ public class ProductionCycleConfiguration : IEntityTypeConfiguration<ProductionC
         builder.HasIndex(x => new { x.LedgerDayId, x.TriggeredAt });
     }
 }
+

@@ -1,4 +1,4 @@
-using IcePlant.Domain.Aggregates.HR;
+﻿using IcePlant.Domain.Aggregates.HR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -48,3 +48,4 @@ public class DailyAttendanceConfiguration : IEntityTypeConfiguration<DailyAttend
             .OnDelete(DeleteBehavior.Restrict); // Don't let deleting a worker delete the attendance history!
     }
 }
+

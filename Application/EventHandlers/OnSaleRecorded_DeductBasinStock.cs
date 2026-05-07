@@ -1,3 +1,4 @@
+using IcePlant.Domain.Common;
 using IcePlant.Domain.Events;
 using IcePlant.Domain.Interfaces;
 using IcePlant.Domain.Interfaces.Repositories;

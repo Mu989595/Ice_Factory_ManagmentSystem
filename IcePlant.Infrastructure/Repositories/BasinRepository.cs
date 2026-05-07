@@ -1,24 +1,28 @@
-using IceFactoryManagmentSystem.Domain.Entities;
-using IceFactoryManagmentSystem.Infrastructure.Persistence;
+﻿using IcePlant.Domain.Aggregates.Basin;
+using IcePlant.Domain.Aggregates.Finance;
+using IcePlant.Domain.Aggregates.HR;
+using IcePlant.Domain.Aggregates.Monthly;
+using IcePlant.Domain.Interfaces.Repositories;
+using IcePlant.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace IceFactoryManagmentSystem.Infrastructure.Repositories;
+namespace IcePlant.Infrastructure.Repositories;
 
 public interface IBasinRepository
 {
-    Task<BasinState> GetSingletonAsync(CancellationToken ct = default);
-    void Update(BasinState basin);
+    Task<BasinAggregate> GetSingletonAsync(CancellationToken ct = default);
+    void Update(BasinAggregate basin);
 }
 
-public class BasinRepository : BaseRepository<BasinState>, IBasinRepository
+public class BasinRepository : BaseRepository<BasinAggregate>, IBasinRepository
 {
     public BasinRepository(AppDbContext context) : base(context) { }
 
     /// <summary>
     /// Returns the one and only basin row (Id = 1).
-    /// Throws if not found — it must be seeded at startup.
+    /// Throws if not found â€” it must be seeded at startup.
     /// </summary>
-    public async Task<BasinState> GetSingletonAsync(CancellationToken ct = default)
+    public async Task<BasinAggregate> GetSingletonAsync(CancellationToken ct = default)
     {
         var basin = await _dbSet.FirstOrDefaultAsync(b => b.Id == 1, ct);
 
@@ -29,5 +33,6 @@ public class BasinRepository : BaseRepository<BasinState>, IBasinRepository
         return basin;
     }
 
-    public new void Update(BasinState basin) => _context.Entry(basin).State = EntityState.Modified;
+    public new void Update(BasinAggregate basin) => _context.Entry(basin).State = EntityState.Modified;
 }
+
