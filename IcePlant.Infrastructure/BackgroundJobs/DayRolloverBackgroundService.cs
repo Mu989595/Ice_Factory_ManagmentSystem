@@ -1,3 +1,4 @@
+using IcePlant.Domain.Interfaces;
 using IcePlant.Infrastructure.UnitOfWork;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -58,25 +59,27 @@ public class DayRolloverBackgroundService : BackgroundService
     {
         await using var scope = _scopeFactory.CreateAsyncScope();
         var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var basinRepo = scope.ServiceProvider.GetRequiredService<IcePlant.Domain.Interfaces.Repositories.IBasinRepository>();
+        var ledgerRepo = scope.ServiceProvider.GetRequiredService<IcePlant.Domain.Interfaces.Repositories.ILedgerDayRepository>();
 
         var now       = DateTime.UtcNow;
         var yesterday = DateOnly.FromDateTime(now.AddDays(-1));
         var today     = DateOnly.FromDateTime(now);
 
         // ── 1. Get the basin's current stock ─────────────────────────────────
-        var basin = await uow.Basin.GetSingletonAsync(ct);
+        var basin = await basinRepo.GetSingletonAsync(ct);
 
         // ── 2. Close yesterday's ledger with final closing stock ─────────────
-        var yesterdayLedger = await uow.LedgerDays.GetByDateAsync(yesterday, ct);
+        var yesterdayLedger = await ledgerRepo.GetByDateAsync(yesterday, ct);
         if (yesterdayLedger is not null)
         {
             // Use the domain method to set closing stock (respects private setters)
             yesterdayLedger.SetClosingStock(basin.CurrentStock);
-            await uow.LedgerDays.UpdateAsync(yesterdayLedger, ct);
+            await ledgerRepo.UpdateAsync(yesterdayLedger, ct);
         }
 
         // ── 3. Create today's ledger — opening stock = basin's current stock ──
-        await uow.LedgerDays.GetOrCreateAsync(today, basin.CurrentStock, ct);
+        await ledgerRepo.GetOrCreateAsync(today, basin.CurrentStock, ct);
 
         await uow.SaveChangesAsync(ct);
 

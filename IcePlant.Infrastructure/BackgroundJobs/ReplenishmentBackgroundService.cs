@@ -1,4 +1,5 @@
 using IcePlant.Domain.Enums;
+using IcePlant.Domain.Interfaces;
 using IcePlant.Infrastructure.UnitOfWork;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -62,12 +63,16 @@ public class ReplenishmentBackgroundService : BackgroundService
     {
         await using var scope = _scopeFactory.CreateAsyncScope();
         var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var basinRepo = scope.ServiceProvider.GetRequiredService<IcePlant.Domain.Interfaces.Repositories.IBasinRepository>();
+        var saleRepo = scope.ServiceProvider.GetRequiredService<IcePlant.Domain.Interfaces.Repositories.ISaleRepository>();
+        var ledgerRepo = scope.ServiceProvider.GetRequiredService<IcePlant.Domain.Interfaces.Repositories.ILedgerDayRepository>();
+        var productionRepo = scope.ServiceProvider.GetRequiredService<IcePlant.Domain.Interfaces.Repositories.IProductionCycleRepository>();
 
         var now   = DateTime.UtcNow;
         var today = DateOnly.FromDateTime(now);
 
         // ── Step 1: Get basin ──────────────────────────────────────────────────
-        var basin = await uow.Basin.GetSingletonAsync(ct);
+        var basin = await basinRepo.GetSingletonAsync(ct);
 
         if (basin.CurrentStock >= basin.MaxCapacity)
         {
@@ -77,7 +82,7 @@ public class ReplenishmentBackgroundService : BackgroundService
         }
 
         // ── Step 2: Get last sale time today ─────────────────────────────────
-        var lastSale = await uow.Sale.GetLastSaleForDayAsync(today, ct);
+        var lastSale = await saleRepo.GetLastSaleForDayAsync(today, ct);
 
         DateTime referenceTime = lastSale?.SaleTime ?? now.Date; // start of day if no Sale
 
@@ -93,7 +98,7 @@ public class ReplenishmentBackgroundService : BackgroundService
         }
 
         // ── Step 4: Prevent double-replenishment in same cycle ────────────────
-        bool alreadyFired = await uow.ProductionCycles
+        bool alreadyFired = await productionRepo
             .ExistsAfterAsync(referenceTime, ct);
 
         if (alreadyFired)
@@ -103,7 +108,7 @@ public class ReplenishmentBackgroundService : BackgroundService
         }
 
         // ── Step 5: Calculate how many blocks to add back ─────────────────────
-        int blocksToAdd = await uow.Sale
+        int blocksToAdd = await saleRepo
             .GetBlocksSoldSinceLastReplenishAsync(today, ct);
 
         if (blocksToAdd <= 0)
@@ -121,10 +126,10 @@ public class ReplenishmentBackgroundService : BackgroundService
             return;
         }
 
-        await uow.Basin.UpdateAsync(basin, ct);
+        await basinRepo.UpdateAsync(basin, ct);
 
         // ── Step 7: Get or create today's ledger day for FK ─────────────────
-        var ledgerDay = await uow.LedgerDays.GetOrCreateAsync(today, basin.CurrentStock, ct);
+        var ledgerDay = await ledgerRepo.GetOrCreateAsync(today, basin.CurrentStock, ct);
         await uow.SaveChangesAsync(ct); // ensure ledger day has an Id
 
         // ── Step 8: Write audit record via domain factory ────────────────────
@@ -136,7 +141,7 @@ public class ReplenishmentBackgroundService : BackgroundService
             stockBefore: stockBefore,
             stockAfter:  basin.CurrentStock);
 
-        await uow.ProductionCycles.AddAsync(cycle, ct);
+        await productionRepo.AddAsync(cycle, ct);
         await uow.SaveChangesAsync(ct);
 
         _logger.LogInformation(

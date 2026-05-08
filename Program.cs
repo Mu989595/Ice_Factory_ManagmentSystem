@@ -1,18 +1,27 @@
+using IcePlant.Infrastructure;
+using IcePlant.Infrastructure.JsonConverters;
 
 namespace IceFactoryManagmentSystem
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddControllers()
+                .AddJsonOptions(o => {
+                    o.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+                });
 
-            builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
 
+            // Add Infrastructure layer and Database
+            builder.Services.AddInfrastructure(builder.Configuration);
+
+            // Register Application services
             builder.Services.AddScoped<IcePlant.Application.Services.AttendanceService>();
             builder.Services.AddScoped<IcePlant.Application.Services.SaleService>();
             builder.Services.AddScoped<IcePlant.Application.Services.ExpenseService>();
@@ -22,17 +31,18 @@ namespace IceFactoryManagmentSystem
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();
+                app.UseSwagger();
+                app.UseSwaggerUI();
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
 
-            app.Run();
+            // Apply migrations and seed db on startup
+            await app.Services.ApplyMigrationsAsync();
+
+            await app.RunAsync();
         }
     }
 }

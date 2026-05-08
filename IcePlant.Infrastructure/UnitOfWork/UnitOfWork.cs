@@ -1,3 +1,4 @@
+using IcePlant.Domain.Interfaces;
 using IcePlant.Domain.Interfaces.Repositories;
 using IcePlant.Infrastructure.Persistence;
 using IcePlant.Infrastructure.Repositories;
@@ -6,33 +7,15 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace IcePlant.Infrastructure.UnitOfWork;
 
 /// <summary>
-/// Wraps all repositories and the DbContext into one transaction boundary.
-/// Call SaveChangesAsync() once per use-case to commit everything atomically.
+/// Wraps all repositories and the DbContext in one transaction boundary.
+/// Implements the Domain IUnitOfWork interface — Application layer only sees the interface.
 /// </summary>
-public interface IUnitOfWork : IDisposable
-{
-    IBasinRepository           Basin           { get; }
-    ILedgerDayRepository       LedgerDays      { get; }
-    ISaleRepository            Sale           { get; }
-    IExpenseRepository         Expenses        { get; }
-    IExpenseCategoryRepository ExpenseCategories { get; }
-    IWorkerRepository          Workers         { get; }
-    IAttendanceRepository      Attendance      { get; }
-    IMonthlySummaryRepository  MonthlySummaries{ get; }
-    IProductionCycleRepository ProductionCycles{ get; }
-
-    Task<int>  SaveChangesAsync(CancellationToken ct = default);
-    Task       BeginTransactionAsync(CancellationToken ct = default);
-    Task       CommitTransactionAsync(CancellationToken ct = default);
-    Task       RollbackTransactionAsync(CancellationToken ct = default);
-}
-
 public class UnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _context;
     private IDbContextTransaction? _transaction;
 
-    // â”€â”€ Lazy-initialised repositories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Lazy-initialised repositories ─────────────────────────────────────────
     private IBasinRepository?           _basin;
     private ILedgerDayRepository?       _ledgerDays;
     private ISaleRepository?            _sales;
@@ -45,17 +28,17 @@ public class UnitOfWork : IUnitOfWork
 
     public UnitOfWork(AppDbContext context) => _context = context;
 
-    public IBasinRepository           Basin            => _basin           ??= new BasinRepository(_context);
-    public ILedgerDayRepository       LedgerDays       => _ledgerDays      ??= new LedgerDayRepository(_context);
-    public ISaleRepository            Sale            => _sales           ??= new SaleRepository(_context);
-    public IExpenseRepository         Expenses         => _expenses        ??= new ExpenseRepository(_context);
-    public IExpenseCategoryRepository ExpenseCategories=> _expenseCategories??= new ExpenseCategoryRepository(_context);
-    public IWorkerRepository          Workers          => _workers         ??= new WorkerRepository(_context);
-    public IAttendanceRepository      Attendance       => _attendance      ??= new AttendanceRepository(_context);
-    public IMonthlySummaryRepository  MonthlySummaries => _monthlySummaries??= new MonthlySummaryRepository(_context);
-    public IProductionCycleRepository ProductionCycles => _productionCycles??= new ProductionCycleRepository(_context);
+    public IBasinRepository           Basin             => _basin            ??= new BasinRepository(_context);
+    public ILedgerDayRepository       LedgerDays        => _ledgerDays       ??= new LedgerDayRepository(_context);
+    public ISaleRepository            Sale              => _sales            ??= new SaleRepository(_context);
+    public IExpenseRepository         Expenses          => _expenses         ??= new ExpenseRepository(_context);
+    public IExpenseCategoryRepository ExpenseCategories => _expenseCategories??= new ExpenseCategoryRepository(_context);
+    public IWorkerRepository          Workers           => _workers          ??= new WorkerRepository(_context);
+    public IAttendanceRepository      Attendance        => _attendance       ??= new AttendanceRepository(_context);
+    public IMonthlySummaryRepository  MonthlySummaries  => _monthlySummaries ??= new MonthlySummaryRepository(_context);
+    public IProductionCycleRepository ProductionCycles  => _productionCycles ??= new ProductionCycleRepository(_context);
 
-    // â”€â”€ Transaction Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Transaction Management ────────────────────────────────────────────────
     public async Task<int> SaveChangesAsync(CancellationToken ct = default)
         => await _context.SaveChangesAsync(ct);
 
@@ -85,4 +68,3 @@ public class UnitOfWork : IUnitOfWork
         _context.Dispose();
     }
 }
-

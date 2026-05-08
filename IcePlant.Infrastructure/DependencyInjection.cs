@@ -1,9 +1,12 @@
+using IcePlant.Domain.Interfaces;
 using IcePlant.Infrastructure.BackgroundJobs;
+using IcePlant.Infrastructure.Events;
 using IcePlant.Infrastructure.Persistence;
 using IcePlant.Infrastructure.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace IcePlant.Infrastructure;
 
@@ -17,7 +20,7 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration          configuration)
     {
-        // â”€â”€ Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Database ───────────────────────────────────────────────────────────
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"),
@@ -33,10 +36,10 @@ public static class DependencyInjection
                         errorNumbersToAdd:   null);
                 }));
 
-        // â”€â”€ Unit of Work â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Unit of Work ───────────────────────────────────────────────────────
         services.AddScoped<IUnitOfWork, UnitOfWork.UnitOfWork>();
 
-        // â”€â”€ Background Services â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Background Services ────────────────────────────────────────────────
         services.AddHostedService<ReplenishmentBackgroundService>();
         services.AddHostedService<DayRolloverBackgroundService>();
 
@@ -51,6 +54,14 @@ public static class DependencyInjection
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IExpenseCategoryRepository, Repositories.ExpenseCategoryRepository>();
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IProductionCycleRepository, Repositories.ProductionCycleRepository>();
         
+        // ── Domain Events ─────────────────────────────────────────────────────
+        services.AddScoped<IEventDispatcher, EventDispatcher>();
+        services.AddTransient<IDomainEventHandler<IcePlant.Domain.Events.SaleRecordedEvent>, IcePlant.Application.EventHandlers.OnSaleRecorded_DeductBasinStock>();
+        services.AddTransient<IDomainEventHandler<IcePlant.Domain.Events.StockDeductedEvent>, IcePlant.Application.EventHandlers.OnStockDeducted_UpdateLedgerClosingStock>();
+
+        // ── Seeder ────────────────────────────────────────────────────────────
+        services.AddScoped<DbSeeder>();
+
         return services;
     }
 
@@ -64,6 +75,9 @@ public static class DependencyInjection
         var       context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         await context.Database.MigrateAsync();
+
+        var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
+        await seeder.SeedAsync();
     }
 }
 

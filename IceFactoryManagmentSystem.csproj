@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Domain\**;Application\**;IcePlant.Infrastructure\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +16,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +33,11 @@
     <None Remove="tests\**" />
     <None Remove="WebApi\**" />
     <None Remove="IceFactory.Api\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="IcePlant.Infrastructure\IcePlant.Infrastructure.csproj" />
+    <ProjectReference Include="Application\Application.csproj" />
   </ItemGroup>
 
 </Project>
