@@ -14,6 +14,8 @@ public sealed record Money
         Currency = currency;
     }
 
+    private Money() { Currency = "EGP"; } // For EF Core
+
     public static Money Of(decimal amount, string currency = "EGP")
     {
         if (amount < 0)
