@@ -14,6 +14,8 @@ namespace IceFactoryManagmentSystem
             builder.Services.AddOpenApi();
 
             builder.Services.AddScoped<IcePlant.Application.Services.AttendanceService>();
+            builder.Services.AddScoped<IcePlant.Application.Services.SaleService>();
+            builder.Services.AddScoped<IcePlant.Application.Services.ExpenseService>();
             
             var app = builder.Build();
 

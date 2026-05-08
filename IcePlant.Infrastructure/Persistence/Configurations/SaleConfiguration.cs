@@ -1,8 +1,5 @@
-﻿using IcePlant.Domain.Aggregates.Basin;
 using IcePlant.Domain.Aggregates.Finance;
-using IcePlant.Domain.Aggregates.HR;
-using IcePlant.Domain.Aggregates.Monthly;
-using IcePlant.Domain.Interfaces.Repositories;
+using IcePlant.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,7 +9,7 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
 {
     public void Configure(EntityTypeBuilder<Sale> builder)
     {
-        builder.ToTable("Sale");
+        builder.ToTable("Sales");
 
         builder.HasKey(x => x.Id);
 
@@ -31,16 +28,25 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_sales_blocks_positive", "[BlocksSold] > 0"));
 
-        builder.Property(x => x.UnitPrice)
-               .IsRequired()
-               .HasColumnType("decimal(10,2)");
+        // UnitPrice value object (Money)
+        builder.OwnsOne(x => x.UnitPrice, m =>
+        {
+            m.Property(p => p.Amount)
+             .HasColumnName("UnitPrice")
+             .HasColumnType("decimal(10,2)")
+             .IsRequired();
+            m.Ignore(p => p.Currency);
+        });
 
-        builder.ToTable(t => t.HasCheckConstraint(
-            "CK_sales_price_positive", "[UnitPrice] > 0"));
-
-        builder.Property(x => x.TotalAmount)
-               .IsRequired()
-               .HasColumnType("decimal(12,2)");
+        // TotalAmount value object (Money)
+        builder.OwnsOne(x => x.TotalAmount, m =>
+        {
+            m.Property(p => p.Amount)
+             .HasColumnName("TotalAmount")
+             .HasColumnType("decimal(12,2)")
+             .IsRequired();
+            m.Ignore(p => p.Currency);
+        });
 
         builder.Property(x => x.CustomerName)
                .HasMaxLength(100);
@@ -48,8 +54,7 @@ public class SaleConfiguration : IEntityTypeConfiguration<Sale>
         builder.Property(x => x.Notes)
                .HasMaxLength(300);
 
-        // â”€â”€ Index: fast lookup of last sale per day (used by replenishment) â”€
+        // Fast lookup of last sale per day (used by replenishment)
         builder.HasIndex(x => new { x.LedgerDayId, x.SaleTime });
     }
 }
-

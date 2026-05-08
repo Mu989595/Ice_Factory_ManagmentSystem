@@ -1,12 +1,5 @@
-﻿using IcePlant.Domain.Aggregates.Basin;
-using IcePlant.Domain.Aggregates.Finance;
-using IcePlant.Domain.Aggregates.HR;
-using IcePlant.Domain.Aggregates.Monthly;
-using IcePlant.Domain.Interfaces.Repositories;
-using IcePlant.Infrastructure.Persistence;
-using IcePlant.Infrastructure.Repositories;
+using IcePlant.Domain.Enums;
 using IcePlant.Infrastructure.UnitOfWork;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -20,9 +13,9 @@ namespace IcePlant.Infrastructure.BackgroundJobs;
 /// Flow:
 ///   1. Get current basin state
 ///   2. Find the last sale time today
-///   3. If FreezeHours have elapsed since the last sale â†’ replenish
-///   4. Only replenish once per freeze cycle (check production_cycles table)
-///   5. Write an audit row to production_cycles
+///   3. If FreezeHours have elapsed since the last sale → replenish
+///   4. Only replenish once per freeze cycle (check ProductionCycles table)
+///   5. Write an audit row to ProductionCycles
 /// </summary>
 public class ReplenishmentBackgroundService : BackgroundService
 {
@@ -52,13 +45,13 @@ public class ReplenishmentBackgroundService : BackgroundService
             }
             catch (OperationCanceledException)
             {
-                // Graceful shutdown â€” exit the loop
+                // Graceful shutdown — exit the loop
                 break;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during replenishment evaluation.");
-                // Do NOT crash the service â€” log and continue polling
+                // Do NOT crash the service — log and continue polling
             }
         }
 
@@ -68,13 +61,12 @@ public class ReplenishmentBackgroundService : BackgroundService
     private async Task EvaluateAndReplenishAsync(CancellationToken ct)
     {
         await using var scope = _scopeFactory.CreateAsyncScope();
-        var uow    = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        var context= scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         var now   = DateTime.UtcNow;
         var today = DateOnly.FromDateTime(now);
 
-        // â”€â”€ Step 1: Get basin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Step 1: Get basin ──────────────────────────────────────────────────
         var basin = await uow.Basin.GetSingletonAsync(ct);
 
         if (basin.CurrentStock >= basin.MaxCapacity)
@@ -84,15 +76,15 @@ public class ReplenishmentBackgroundService : BackgroundService
             return;
         }
 
-        // â”€â”€ Step 2: Get last sale time today â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Step 2: Get last sale time today ─────────────────────────────────
         var lastSale = await uow.Sale.GetLastSaleForDayAsync(today, ct);
 
         DateTime referenceTime = lastSale?.SaleTime ?? now.Date; // start of day if no Sale
 
-        // â”€â”€ Step 3: Check if freeze cycle has completed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Step 3: Check if freeze cycle has completed ───────────────────────
         double hoursElapsed = (now - referenceTime).TotalHours;
 
-        if (hoursElapsed < (double)basin.FreezeHours)
+        if (hoursElapsed < basin.FreezeHours)
         {
             _logger.LogDebug(
                 "Freeze not complete. {Elapsed:F1}h elapsed of {Required}h required.",
@@ -100,9 +92,9 @@ public class ReplenishmentBackgroundService : BackgroundService
             return;
         }
 
-        // â”€â”€ Step 4: Prevent double-replenishment in same cycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Step 4: Prevent double-replenishment in same cycle ────────────────
         bool alreadyFired = await uow.ProductionCycles
-            .ExistsAfterAsync(referenceTime, today, ct);
+            .ExistsAfterAsync(referenceTime, ct);
 
         if (alreadyFired)
         {
@@ -110,7 +102,7 @@ public class ReplenishmentBackgroundService : BackgroundService
             return;
         }
 
-        // â”€â”€ Step 5: Calculate how many blocks to add back â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Step 5: Calculate how many blocks to add back ─────────────────────
         int blocksToAdd = await uow.Sale
             .GetBlocksSoldSinceLastReplenishAsync(today, ct);
 
@@ -120,37 +112,35 @@ public class ReplenishmentBackgroundService : BackgroundService
             return;
         }
 
-        // Cap at available free slots
-        int freeSlots     = basin.MaxCapacity - basin.CurrentStock;
-        int actualAdded   = Math.Min(blocksToAdd, freeSlots);
-        int stockBefore   = basin.CurrentStock;
+        // ── Step 6: Use the domain method to add stock correctly ─────────────
+        int stockBefore = basin.CurrentStock;
+        var addResult   = basin.AddStock(blocksToAdd, ReplenishmentTrigger.AutoTimer);
+        if (addResult.IsFailure)
+        {
+            _logger.LogWarning("Basin AddStock failed: {Error}", addResult.Error);
+            return;
+        }
 
-        // â”€â”€ Step 6: Update basin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        basin.CurrentStock  += actualAdded;
-        basin.LastUpdatedAt  = now;
-        uow.Basin.Update(basin);
+        await uow.Basin.UpdateAsync(basin, ct);
 
-        // â”€â”€ Step 7: Get or create today's ledger day for FK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Step 7: Get or create today's ledger day for FK ─────────────────
         var ledgerDay = await uow.LedgerDays.GetOrCreateAsync(today, basin.CurrentStock, ct);
         await uow.SaveChangesAsync(ct); // ensure ledger day has an Id
 
-        // â”€â”€ Step 8: Write audit record â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        var cycle = new ProductionCycle
-        {
-            LedgerDayId   = ledgerDay.Id,
-            TriggeredAt   = now,
-            TriggerReason = "AutoTimer",
-            BlocksAdded   = actualAdded,
-            StockBefore   = stockBefore,
-            StockAfter    = basin.CurrentStock
-        };
+        // ── Step 8: Write audit record via domain factory ────────────────────
+        var cycle = IcePlant.Domain.Aggregates.Basin.ProductionCycle.Create(
+            ledgerDayId: ledgerDay.Id,
+            triggeredAt: now,
+            reason:      ReplenishmentTrigger.AutoTimer,
+            blocksAdded: basin.CurrentStock - stockBefore,
+            stockBefore: stockBefore,
+            stockAfter:  basin.CurrentStock);
 
         await uow.ProductionCycles.AddAsync(cycle, ct);
         await uow.SaveChangesAsync(ct);
 
         _logger.LogInformation(
-            "Auto-replenishment complete. +{Blocks} blocks. Stock: {Before} â†’ {After}.",
-            actualAdded, stockBefore, basin.CurrentStock);
+            "Auto-replenishment complete. +{Blocks} blocks. Stock: {Before} → {After}.",
+            basin.CurrentStock - stockBefore, stockBefore, basin.CurrentStock);
     }
 }
-

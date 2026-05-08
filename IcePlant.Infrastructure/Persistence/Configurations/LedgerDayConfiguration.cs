@@ -1,8 +1,6 @@
-﻿using IcePlant.Domain.Aggregates.Basin;
 using IcePlant.Domain.Aggregates.Finance;
 using IcePlant.Domain.Aggregates.HR;
-using IcePlant.Domain.Aggregates.Monthly;
-using IcePlant.Domain.Interfaces.Repositories;
+using IcePlant.Domain.Aggregates.Basin;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,7 +10,7 @@ public class LedgerDayConfiguration : IEntityTypeConfiguration<LedgerDay>
 {
     public void Configure(EntityTypeBuilder<LedgerDay> builder)
     {
-        builder.ToTable("LedgerDay");
+        builder.ToTable("LedgerDays");
 
         builder.HasKey(x => x.Id);
 
@@ -42,26 +40,30 @@ public class LedgerDayConfiguration : IEntityTypeConfiguration<LedgerDay>
                .IsRequired()
                .HasDefaultValueSql("GETUTCDATE()");
 
-        // â”€â”€ Relationships â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        builder.HasMany(x => x.Sale)
-               .WithOne(s => s.LedgerDay)
+        // ── Relationships ────────────────────────────────────────────────────
+
+        // Sales: LedgerDay owns a collection of Sales (private backing field)
+        builder.HasMany(x => x.Sales)
+               .WithOne()
                .HasForeignKey(s => s.LedgerDayId)
                .OnDelete(DeleteBehavior.Restrict);
 
+        // Expenses: LedgerDay owns a collection of Expenses (private backing field)
         builder.HasMany(x => x.Expenses)
-               .WithOne(e => e.LedgerDay)
+               .WithOne()
                .HasForeignKey(e => e.LedgerDayId)
                .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(x => x.DailyAttendances)
-               .WithOne(a => a.LedgerDay)
+        // DailyAttendance: references LedgerDayId (no nav property on LedgerDay)
+        builder.HasMany<DailyAttendance>()
+               .WithOne()
                .HasForeignKey(a => a.LedgerDayId)
                .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(x => x.ProductionCycles)
-               .WithOne(p => p.LedgerDay)
+        // ProductionCycle: references LedgerDayId (no nav property on LedgerDay)
+        builder.HasMany<ProductionCycle>()
+               .WithOne()
                .HasForeignKey(p => p.LedgerDayId)
                .OnDelete(DeleteBehavior.Restrict);
     }
 }
-

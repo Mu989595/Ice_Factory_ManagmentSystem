@@ -1,21 +1,10 @@
-﻿using IcePlant.Domain.Aggregates.Basin;
 using IcePlant.Domain.Aggregates.Finance;
 using IcePlant.Domain.Aggregates.HR;
-using IcePlant.Domain.Aggregates.Monthly;
 using IcePlant.Domain.Interfaces.Repositories;
 using IcePlant.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace IcePlant.Infrastructure.Repositories;
-
-public interface ISaleRepository
-{
-    Task<Sale?> GetByIdAsync(int id, CancellationToken ct = default);
-    Task<Sale?> GetLastSaleForDayAsync(DateOnly date, CancellationToken ct = default);
-    Task<int>    GetBlocksSoldSinceLastReplenishAsync(DateOnly date, CancellationToken ct = default);
-    Task<IReadOnlyList<Sale>> GetByDateAsync(DateOnly date, CancellationToken ct = default);
-    Task AddAsync(Sale sale, CancellationToken ct = default);
-}
 
 public class SaleRepository : BaseRepository<Sale>, ISaleRepository
 {
@@ -29,9 +18,10 @@ public class SaleRepository : BaseRepository<Sale>, ISaleRepository
     /// Used by the replenishment service to calculate freeze elapsed time.
     /// </summary>
     public async Task<Sale?> GetLastSaleForDayAsync(DateOnly date, CancellationToken ct = default)
-        => await _dbSet
+        => await _context.LedgerDays
             .AsNoTracking()
-            .Where(s => s.LedgerDay.DayDate == date)
+            .Where(l => l.DayDate == date)
+            .SelectMany(l => l.Sales)
             .OrderByDescending(s => s.SaleTime)
             .FirstOrDefaultAsync(ct);
 
@@ -43,33 +33,37 @@ public class SaleRepository : BaseRepository<Sale>, ISaleRepository
         DateOnly date,
         CancellationToken ct = default)
     {
-        // Find the last replenishment for today
+        // Find the last replenishment timestamp for today
         var lastReplenish = await _context.ProductionCycles
             .AsNoTracking()
-            .Where(p => p.LedgerDay.DayDate == date)
+            .Where(p => p.LedgerDayId == _context.LedgerDays
+                .Where(l => l.DayDate == date)
+                .Select(l => l.Id)
+                .FirstOrDefault())
             .OrderByDescending(p => p.TriggeredAt)
             .Select(p => (DateTime?)p.TriggeredAt)
             .FirstOrDefaultAsync(ct);
 
-        // Sum all blocks sold after that replenishment (or all day if no replenishment yet)
-        var query = _dbSet
+        // Sum all blocks sold after that replenishment (or all day if none yet)
+        var salesQuery = _context.LedgerDays
             .AsNoTracking()
-            .Where(s => s.LedgerDay.DayDate == date);
+            .Where(l => l.DayDate == date)
+            .SelectMany(l => l.Sales);
 
         if (lastReplenish.HasValue)
-            query = query.Where(s => s.SaleTime > lastReplenish.Value);
+            salesQuery = salesQuery.Where(s => s.SaleTime > lastReplenish.Value);
 
-        return await query.SumAsync(s => (int?)s.BlocksSold ?? 0, ct);
+        return await salesQuery.SumAsync(s => (int?)s.BlocksSold ?? 0, ct);
     }
 
     public async Task<IReadOnlyList<Sale>> GetByDateAsync(DateOnly date, CancellationToken ct = default)
-        => await _dbSet
+        => await _context.LedgerDays
             .AsNoTracking()
-            .Where(s => s.LedgerDay.DayDate == date)
+            .Where(l => l.DayDate == date)
+            .SelectMany(l => l.Sales)
             .OrderBy(s => s.SaleTime)
             .ToListAsync(ct);
 
     public async Task AddAsync(Sale sale, CancellationToken ct = default)
         => await _dbSet.AddAsync(sale, ct);
 }
-

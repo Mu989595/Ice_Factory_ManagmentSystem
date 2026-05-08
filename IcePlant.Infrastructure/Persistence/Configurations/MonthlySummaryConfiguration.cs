@@ -1,8 +1,4 @@
-﻿using IcePlant.Domain.Aggregates.Basin;
-using IcePlant.Domain.Aggregates.Finance;
-using IcePlant.Domain.Aggregates.HR;
 using IcePlant.Domain.Aggregates.Monthly;
-using IcePlant.Domain.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,7 +8,7 @@ public class MonthlySummaryConfiguration : IEntityTypeConfiguration<MonthlySumma
 {
     public void Configure(EntityTypeBuilder<MonthlySummary> builder)
     {
-        builder.ToTable("monthly_summaries");
+        builder.ToTable("MonthlySummaries");
 
         builder.HasKey(x => x.Id);
 
@@ -29,17 +25,33 @@ public class MonthlySummaryConfiguration : IEntityTypeConfiguration<MonthlySumma
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_monthly_month_range", "[Month] >= 1 AND [Month] <= 12"));
 
-        builder.Property(x => x.TotalIncome)
-               .IsRequired()
-               .HasColumnType("decimal(14,2)");
+        // Money value objects — stored as flat decimal columns
+        builder.OwnsOne(x => x.TotalIncome, m =>
+        {
+            m.Property(p => p.Amount)
+             .HasColumnName("TotalIncome")
+             .HasColumnType("decimal(14,2)")
+             .IsRequired();
+            m.Ignore(p => p.Currency); // Currency is always EGP, not stored
+        });
 
-        builder.Property(x => x.TotalExpenses)
-               .IsRequired()
-               .HasColumnType("decimal(14,2)");
+        builder.OwnsOne(x => x.TotalExpenses, m =>
+        {
+            m.Property(p => p.Amount)
+             .HasColumnName("TotalExpenses")
+             .HasColumnType("decimal(14,2)")
+             .IsRequired();
+            m.Ignore(p => p.Currency);
+        });
 
-        builder.Property(x => x.NetProfit)
-               .IsRequired()
-               .HasColumnType("decimal(14,2)");
+        builder.OwnsOne(x => x.NetProfit, m =>
+        {
+            m.Property(p => p.Amount)
+             .HasColumnName("NetProfit")
+             .HasColumnType("decimal(14,2)")
+             .IsRequired();
+            m.Ignore(p => p.Currency);
+        });
 
         builder.Property(x => x.IsClosed)
                .IsRequired()
@@ -48,9 +60,9 @@ public class MonthlySummaryConfiguration : IEntityTypeConfiguration<MonthlySumma
         builder.Property(x => x.ClosedAt)
                .IsRequired(false);
 
-        // Navigation
+        // Navigation: MonthlySummary owns a collection of ProfitSplits
         builder.HasMany(x => x.ProfitSplits)
-               .WithOne(p => p.MonthlySummary)
+               .WithOne()
                .HasForeignKey(p => p.MonthlySummaryId)
                .OnDelete(DeleteBehavior.Cascade);
     }
@@ -60,7 +72,7 @@ public class ProfitSplitConfiguration : IEntityTypeConfiguration<ProfitSplit>
 {
     public void Configure(EntityTypeBuilder<ProfitSplit> builder)
     {
-        builder.ToTable("profit_splits");
+        builder.ToTable("ProfitSplits");
 
         builder.HasKey(x => x.Id);
 
@@ -74,16 +86,26 @@ public class ProfitSplitConfiguration : IEntityTypeConfiguration<ProfitSplit>
                .IsRequired()
                .HasMaxLength(100);
 
-        builder.Property(x => x.SplitPercentage)
-               .IsRequired()
-               .HasColumnType("decimal(5,2)");
+        // SplitPercentage value object
+        builder.OwnsOne(x => x.SplitPercentage, sp =>
+        {
+            sp.Property(p => p.Value)
+              .HasColumnName("SplitPercentage")
+              .HasColumnType("decimal(5,2)")
+              .IsRequired();
+        });
 
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_split_pct_range", "[SplitPercentage] > 0 AND [SplitPercentage] <= 100"));
 
-        builder.Property(x => x.AmountReceived)
-               .IsRequired()
-               .HasColumnType("decimal(14,2)");
+        // AmountReceived value object
+        builder.OwnsOne(x => x.AmountReceived, m =>
+        {
+            m.Property(p => p.Amount)
+             .HasColumnName("AmountReceived")
+             .HasColumnType("decimal(14,2)")
+             .IsRequired();
+            m.Ignore(p => p.Currency);
+        });
     }
 }
-

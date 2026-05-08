@@ -1,21 +1,12 @@
-﻿using IcePlant.Domain.Aggregates.Basin;
 using IcePlant.Domain.Aggregates.Finance;
-using IcePlant.Domain.Aggregates.HR;
-using IcePlant.Domain.Aggregates.Monthly;
+using IcePlant.Domain.Enums;
 using IcePlant.Domain.Interfaces.Repositories;
 using IcePlant.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace IcePlant.Infrastructure.Repositories;
 
-// â”€â”€ Expense Category â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-public interface IExpenseCategoryRepository
-{
-    Task<ExpenseCategory?> GetByIdAsync(int id, CancellationToken ct = default);
-    Task<IReadOnlyList<ExpenseCategory>> GetAllAsync(CancellationToken ct = default);
-    Task<IReadOnlyList<ExpenseCategory>> GetByTypeAsync(string parentType, CancellationToken ct = default);
-}
+// ── Expense Category ──────────────────────────────────────────────────────────
 
 public class ExpenseCategoryRepository
     : BaseRepository<ExpenseCategory>, IExpenseCategoryRepository
@@ -25,29 +16,25 @@ public class ExpenseCategoryRepository
     public async Task<ExpenseCategory?> GetByIdAsync(int id, CancellationToken ct = default)
         => await _dbSet.FindAsync([id], ct);
 
-    public async Task<IReadOnlyList<ExpenseCategory>> GetAllAsync(CancellationToken ct = default)
-        => await _dbSet.AsNoTracking().OrderBy(c => c.ParentType).ThenBy(c => c.Name).ToListAsync(ct);
+    public async Task<IReadOnlyList<ExpenseCategory>> GetAllActiveAsync(CancellationToken ct = default)
+        => await _dbSet
+            .AsNoTracking()
+            .Where(c => c.IsActive)
+            .OrderBy(c => c.CategoryType)
+            .ThenBy(c => c.Name)
+            .ToListAsync(ct);
 
     public async Task<IReadOnlyList<ExpenseCategory>> GetByTypeAsync(
-        string parentType,
+        ExpenseCategoryType type,
         CancellationToken ct = default)
         => await _dbSet
             .AsNoTracking()
-            .Where(c => c.ParentType == parentType)
+            .Where(c => c.CategoryType == type && c.IsActive)
             .OrderBy(c => c.Name)
             .ToListAsync(ct);
 }
 
-// â”€â”€ Expense â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-public interface IExpenseRepository
-{
-    Task<IReadOnlyList<Expense>> GetByDateAsync(DateOnly date, CancellationToken ct = default);
-    Task<IReadOnlyList<Expense>> GetByMonthAsync(int year, int month, CancellationToken ct = default);
-    Task<IReadOnlyList<Expense>> GetByMonthAndTypeAsync(int year, int month, string parentType, CancellationToken ct = default);
-    Task<decimal> GetMonthlyTotalByTypeAsync(int year, int month, string parentType, CancellationToken ct = default);
-    Task AddAsync(Expense expense, CancellationToken ct = default);
-}
+// ── Expense ───────────────────────────────────────────────────────────────────
 
 public class ExpenseRepository : BaseRepository<Expense>, IExpenseRepository
 {
@@ -56,47 +43,36 @@ public class ExpenseRepository : BaseRepository<Expense>, IExpenseRepository
     public async Task<IReadOnlyList<Expense>> GetByDateAsync(
         DateOnly date,
         CancellationToken ct = default)
-        => await _dbSet
+        => await _context.LedgerDays
             .AsNoTracking()
+            .Where(l => l.DayDate == date)
+            .SelectMany(l => l.Expenses)
             .Include(e => e.Category)
-            .Where(e => e.LedgerDay.DayDate == date)
             .OrderBy(e => e.ExpenseTime)
             .ToListAsync(ct);
 
     public async Task<IReadOnlyList<Expense>> GetByMonthAsync(
         int year, int month,
         CancellationToken ct = default)
-        => await _dbSet
+        => await _context.LedgerDays
             .AsNoTracking()
+            .Where(l => l.DayDate.Year == year && l.DayDate.Month == month)
+            .SelectMany(l => l.Expenses)
             .Include(e => e.Category)
-            .Where(e => e.LedgerDay.DayDate.Year  == year
-                     && e.LedgerDay.DayDate.Month == month)
-            .OrderBy(e => e.LedgerDay.DayDate)
-            .ThenBy(e => e.ExpenseTime)
+            .OrderBy(e => e.ExpenseTime)
             .ToListAsync(ct);
 
-    public async Task<IReadOnlyList<Expense>> GetByMonthAndTypeAsync(
-        int year, int month, string parentType,
+    public async Task<IReadOnlyList<Expense>> GetByCategoryTypeAsync(
+        ExpenseCategoryType type, int year, int month,
         CancellationToken ct = default)
-        => await _dbSet
+        => await _context.LedgerDays
             .AsNoTracking()
+            .Where(l => l.DayDate.Year == year && l.DayDate.Month == month)
+            .SelectMany(l => l.Expenses)
             .Include(e => e.Category)
-            .Where(e => e.LedgerDay.DayDate.Year  == year
-                     && e.LedgerDay.DayDate.Month == month
-                     && e.Category.ParentType     == parentType)
+            .Where(e => e.Category != null && e.Category.CategoryType == type)
             .ToListAsync(ct);
-
-    public async Task<decimal> GetMonthlyTotalByTypeAsync(
-        int year, int month, string parentType,
-        CancellationToken ct = default)
-        => await _dbSet
-            .AsNoTracking()
-            .Where(e => e.LedgerDay.DayDate.Year  == year
-                     && e.LedgerDay.DayDate.Month == month
-                     && e.Category.ParentType     == parentType)
-            .SumAsync(e => (decimal?)e.Amount ?? 0m, ct);
 
     public async Task AddAsync(Expense expense, CancellationToken ct = default)
         => await _dbSet.AddAsync(expense, ct);
 }
-
