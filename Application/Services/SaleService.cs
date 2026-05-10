@@ -20,17 +20,20 @@ public class SaleService
 {
     private readonly ILedgerDayRepository _ledgerDayRepo;
     private readonly ISaleRepository      _saleRepo;
+    private readonly IBasinRepository     _basinRepo;
     private readonly IEventDispatcher     _eventDispatcher;
     private readonly IUnitOfWork          _unitOfWork;
 
     public SaleService(
         ILedgerDayRepository ledgerDayRepo,
         ISaleRepository      saleRepo,
+        IBasinRepository     basinRepo,
         IEventDispatcher     eventDispatcher,
         IUnitOfWork          unitOfWork)
     {
         _ledgerDayRepo   = ledgerDayRepo;
         _saleRepo        = saleRepo;
+        _basinRepo       = basinRepo;
         _eventDispatcher = eventDispatcher;
         _unitOfWork      = unitOfWork;
     }
@@ -46,13 +49,18 @@ public class SaleService
 
         try
         {
-            // 1. Load the ledger day
-            var ledger = await _ledgerDayRepo.GetByDateAsync(
-                DateOnly.FromDateTime(DateTime.UtcNow), ct);
+            // 1. Ensure the ledger day exists for today
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var ledger = await _ledgerDayRepo.GetByDateAsync(today, ct);
 
             if (ledger is null)
-                return Result.Failure<SaleResultDto>(
-                    "No open ledger for today. Please wait for the day rollover.");
+            {
+                // Get current basin stock to use as opening stock for the new ledger
+                var basin = await _basinRepo.GetSingletonAsync(ct);
+                ledger = await _ledgerDayRepo.GetOrCreateAsync(today, basin.CurrentStock, ct);
+                await _unitOfWork.SaveChangesAsync(ct); // Ensure ID is populated
+            }
+
 
             // 2. Create the Sale domain object
             var saleResult = Sale.Create(

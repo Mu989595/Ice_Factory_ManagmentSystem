@@ -28,13 +28,8 @@ public static class DependencyInjection
                 {
                     sqlOptions.MigrationsAssembly(
                         typeof(AppDbContext).Assembly.FullName);
-
-                    // Retry on transient SQL Server failures (network blips)
-                    sqlOptions.EnableRetryOnFailure(
-                        maxRetryCount:       5,
-                        maxRetryDelay:       TimeSpan.FromSeconds(10),
-                        errorNumbersToAdd:   null);
                 }));
+
 
         // ── Unit of Work ───────────────────────────────────────────────────────
         services.AddScoped<IUnitOfWork, UnitOfWork.UnitOfWork>();

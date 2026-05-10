@@ -57,7 +57,10 @@ public class BasinController : ControllerBase
 
             // Audit record
             var ledger = await _ledgerRepo.GetOrCreateAsync(DateOnly.FromDateTime(DateTime.UtcNow), basin.CurrentStock - blocksToAdd, ct);
+            await _uow.SaveChangesAsync(ct); // Ensure ledger has an ID before creating cycle
+            
             var cycle = IcePlant.Domain.Aggregates.Basin.ProductionCycle.Create(
+
                 ledger.Id,
                 DateTime.UtcNow,
                 ReplenishmentTrigger.Manual,

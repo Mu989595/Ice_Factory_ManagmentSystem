@@ -15,6 +15,7 @@ public class ExpenseService
     private readonly ILedgerDayRepository      _ledgerDayRepo;
     private readonly IExpenseRepository        _expenseRepo;
     private readonly IExpenseCategoryRepository _categoryRepo;
+    private readonly IBasinRepository          _basinRepo;
     private readonly IEventDispatcher          _eventDispatcher;
     private readonly IUnitOfWork               _unitOfWork;
 
@@ -22,12 +23,14 @@ public class ExpenseService
         ILedgerDayRepository       ledgerDayRepo,
         IExpenseRepository         expenseRepo,
         IExpenseCategoryRepository  categoryRepo,
+        IBasinRepository           basinRepo,
         IEventDispatcher           eventDispatcher,
         IUnitOfWork                unitOfWork)
     {
         _ledgerDayRepo   = ledgerDayRepo;
         _expenseRepo     = expenseRepo;
         _categoryRepo    = categoryRepo;
+        _basinRepo       = basinRepo;
         _eventDispatcher = eventDispatcher;
         _unitOfWork      = unitOfWork;
     }
@@ -43,13 +46,18 @@ public class ExpenseService
 
         try
         {
-            // 1. Load today's ledger
-            var ledger = await _ledgerDayRepo.GetByDateAsync(
-                DateOnly.FromDateTime(DateTime.UtcNow), ct);
+            // 1. Ensure the ledger day exists for today
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var ledger = await _ledgerDayRepo.GetByDateAsync(today, ct);
 
             if (ledger is null)
-                return Result.Failure<ExpenseResultDto>(
-                    "No open ledger for today. Please wait for the day rollover.");
+            {
+                // Get current basin stock to use as opening stock for the new ledger
+                var basin = await _basinRepo.GetSingletonAsync(ct);
+                ledger = await _ledgerDayRepo.GetOrCreateAsync(today, basin.CurrentStock, ct);
+                await _unitOfWork.SaveChangesAsync(ct); // Ensure ID is populated
+            }
+
 
             // 2. Verify category exists
             var category = await _categoryRepo.GetByIdAsync(dto.CategoryId, ct);
