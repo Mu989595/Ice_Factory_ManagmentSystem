@@ -17,9 +17,13 @@ public sealed class OnSaleRecorded_DeductBasinStock
     : IDomainEventHandler<SaleRecordedEvent>
 {
     private readonly IBasinRepository _basinRepo;
+    private readonly IEventDispatcher _eventDispatcher;
 
-    public OnSaleRecorded_DeductBasinStock(IBasinRepository basinRepo)
-        => _basinRepo = basinRepo;
+    public OnSaleRecorded_DeductBasinStock(IBasinRepository basinRepo, IEventDispatcher eventDispatcher)
+    {
+        _basinRepo       = basinRepo;
+        _eventDispatcher = eventDispatcher;
+    }
 
     public async Task HandleAsync(SaleRecordedEvent @event, CancellationToken ct = default)
     {
@@ -35,5 +39,12 @@ public sealed class OnSaleRecorded_DeductBasinStock
                 $"[StockDeduction] Basin deduction failed after sale on LedgerDay {@event.LedgerDayId}: {result.Error}");
 
         await _basinRepo.UpdateAsync(basin, ct);
+
+        // Dispatch basin events (e.g. StockDeductedEvent)
+        foreach (var domainEvent in basin.DomainEvents)
+            await _eventDispatcher.DispatchAsync(domainEvent, ct);
+
+        basin.ClearDomainEvents();
     }
+
 }
