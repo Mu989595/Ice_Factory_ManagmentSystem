@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using IcePlant.Domain.Aggregates.HR;
 using IcePlant.Domain.Enums;
 using IcePlant.Domain.Interfaces;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IceFactoryManagmentSystem.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class WorkersController : ControllerBase
@@ -75,3 +77,4 @@ public class WorkersController : ControllerBase
         return Ok(new { worker.Id, DailyWage = worker.DailyWage.Amount });
     }
 }
+

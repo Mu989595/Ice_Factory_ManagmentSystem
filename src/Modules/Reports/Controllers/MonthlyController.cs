@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using IcePlant.Domain.Aggregates.Monthly;
 using IcePlant.Domain.Interfaces;
 using IcePlant.Domain.Interfaces.Repositories;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IceFactoryManagmentSystem.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class MonthlyController : ControllerBase
@@ -99,3 +101,4 @@ public class MonthlyController : ControllerBase
         });
     }
 }
+

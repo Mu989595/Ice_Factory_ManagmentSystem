@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using IcePlant.Application.DTOs;
 using IcePlant.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IceFactoryManagmentSystem.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ExpensesController : ControllerBase
@@ -81,3 +83,4 @@ public class ExpensesController : ControllerBase
         return BadRequest(new { Error = result.Error });
     }
 }
+

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using IcePlant.Domain.Enums;
 using IcePlant.Domain.Interfaces;
 using IcePlant.Domain.Interfaces.Repositories;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IceFactoryManagmentSystem.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class BasinController : ControllerBase
@@ -100,3 +102,4 @@ public class BasinController : ControllerBase
         return Ok(new { basin.FreezeHours });
     }
 }
+

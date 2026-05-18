@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using IcePlant.Application.DTOs;
 using IcePlant.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IceFactoryManagmentSystem.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class AttendanceController : ControllerBase
@@ -53,3 +55,4 @@ public class AttendanceController : ControllerBase
         return BadRequest(new { Error = result.Error });
     }
 }
+

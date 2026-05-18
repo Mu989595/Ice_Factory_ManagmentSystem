@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using IcePlant.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IceFactoryManagmentSystem.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ReportsController : ControllerBase
@@ -67,3 +69,4 @@ public class ReportsController : ControllerBase
         return BadRequest(new { Error = result.Error });
     }
 }
+
