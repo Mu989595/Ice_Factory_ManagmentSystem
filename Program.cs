@@ -1,6 +1,7 @@
 using IcePlant.Infrastructure;
 using IcePlant.Infrastructure.JsonConverters;
 using IceFactoryManagmentSystem.Middleware;
+using Microsoft.AspNetCore.Identity;
 
 namespace IceFactoryManagmentSystem
 {
@@ -38,6 +39,7 @@ namespace IceFactoryManagmentSystem
             builder.Services.AddScoped<IcePlant.Application.Services.ExpenseService>();
             builder.Services.AddScoped<IcePlant.Application.Services.ReportService>();
             builder.Services.AddScoped<IcePlant.Application.Services.DashboardService>();
+            builder.Services.AddScoped<IcePlant.Application.Interfaces.IAuthService, IcePlant.Application.Services.AuthService>();
             
             var app = builder.Build();
 
@@ -54,6 +56,7 @@ namespace IceFactoryManagmentSystem
 
             // app.UseHttpsRedirection();
             app.UseCors();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 
