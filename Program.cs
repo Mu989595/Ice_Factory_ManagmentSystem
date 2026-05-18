@@ -1,5 +1,6 @@
 using IcePlant.Infrastructure;
 using IcePlant.Infrastructure.JsonConverters;
+using IceFactoryManagmentSystem.Middleware;
 
 namespace IceFactoryManagmentSystem
 {
@@ -35,10 +36,16 @@ namespace IceFactoryManagmentSystem
             builder.Services.AddScoped<IcePlant.Application.Services.AttendanceService>();
             builder.Services.AddScoped<IcePlant.Application.Services.SaleService>();
             builder.Services.AddScoped<IcePlant.Application.Services.ExpenseService>();
+            builder.Services.AddScoped<IcePlant.Application.Services.ReportService>();
+            builder.Services.AddScoped<IcePlant.Application.Services.DashboardService>();
             
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
+
+            // Global error handling — must be first in the pipeline
+            app.UseGlobalExceptionHandler();
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
