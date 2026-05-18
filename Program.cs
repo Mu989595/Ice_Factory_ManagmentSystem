@@ -15,6 +15,16 @@ namespace IceFactoryManagmentSystem
                     o.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
                 });
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -35,7 +45,8 @@ namespace IceFactoryManagmentSystem
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
+            app.UseCors();
             app.UseAuthorization();
             app.MapControllers();
 

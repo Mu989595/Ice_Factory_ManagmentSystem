@@ -29,9 +29,15 @@ export function Sales() {
     mutationFn: (data: any) => recordSale({ ...data, ledgerDayId: 1 }), // simplified ledgerDayId
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sales', selectedDate] });
+      queryClient.invalidateQueries({ queryKey: ['basin'] }); // Update basin stock
       setShowModal(false);
       setFormData({ blocksSold: 0, unitPrice: 120, customerName: '', notes: '' });
+      alert('Sale recorded successfully!');
     },
+    onError: (error: any) => {
+      console.error('Sale recording failed:', error);
+      alert(`Failed to record sale: ${error.response?.data?.Error || error.message}`);
+    }
   });
 
   const totalSalesAmount = sales?.reduce((acc, s) => acc + s.totalAmount, 0) || 0;

@@ -37,7 +37,7 @@ public class DbSeeder
         if (await _context.Basins.AnyAsync(ct)) return;
 
         var result = BasinAggregate.Create(
-            maxCapacity:  500,
+            maxCapacity:  1000,
             freezeHours:  8.0,
             initialStock: 0);
 
@@ -48,7 +48,7 @@ public class DbSeeder
         }
 
         await _context.Basins.AddAsync(result.Value, ct);
-        _logger.LogInformation("Basin seeded (capacity=500, freeze=8h).");
+        _logger.LogInformation("Basin seeded (capacity=1000, freeze=8h).");
     }
 
     // ── Expense Categories ────────────────────────────────────────────────────

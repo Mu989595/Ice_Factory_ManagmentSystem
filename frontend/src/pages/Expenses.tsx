@@ -38,7 +38,11 @@ export function Expenses() {
       queryClient.invalidateQueries({ queryKey: ['expenses', selectedDate] });
       setShowModal(false);
       setFormData({ categoryId: 0, amount: 0, supplier: '', invoiceRef: '', notes: '' });
+      alert('Expense recorded successfully!');
     },
+    onError: (error: any) => {
+      alert(`Failed to record expense: ${error.response?.data?.Error || error.message}`);
+    }
   });
 
   const filteredExpenses = categoryFilter === 'all' 
