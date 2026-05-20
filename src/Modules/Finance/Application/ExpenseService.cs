@@ -47,7 +47,7 @@ public class ExpenseService
         try
         {
             // 1. Ensure the ledger day exists for today
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = DateOnly.FromDateTime(DateTime.Now);
             var ledger = await _ledgerDayRepo.GetByDateAsync(today, ct);
 
             if (ledger is null)
@@ -70,7 +70,7 @@ public class ExpenseService
                 ledger.Id,
                 dto.CategoryId,
                 dto.Amount,
-                DateTime.UtcNow,
+                DateTime.Now,
                 dto.Supplier,
                 dto.InvoiceRef,
                 dto.Notes);

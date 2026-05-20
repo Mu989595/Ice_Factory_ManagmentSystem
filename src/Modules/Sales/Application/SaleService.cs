@@ -50,7 +50,7 @@ public class SaleService
         try
         {
             // 1. Ensure the ledger day exists for today
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = DateOnly.FromDateTime(DateTime.Now);
             var ledger = await _ledgerDayRepo.GetByDateAsync(today, ct);
 
             if (ledger is null)
@@ -65,7 +65,7 @@ public class SaleService
             // 2. Create the Sale domain object
             var saleResult = Sale.Create(
                 ledger.Id,
-                DateTime.UtcNow,
+                DateTime.Now,
                 dto.BlocksSold,
                 dto.UnitPrice,
                 dto.CustomerName,

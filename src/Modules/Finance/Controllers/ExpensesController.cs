@@ -29,7 +29,7 @@ public class ExpensesController : ControllerBase
 
         if (result.IsSuccess)
             return CreatedAtAction(nameof(GetExpensesByDate),
-                new { date = DateTime.UtcNow.ToString("yyyy-MM-dd") },
+                new { date = DateTime.Now.ToString("yyyy-MM-dd") },
                 result.Value);
 
         return BadRequest(new { Error = result.Error });
