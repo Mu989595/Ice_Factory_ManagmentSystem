@@ -26,10 +26,8 @@ export function Expenses() {
 
   const [formData, setFormData] = useState({
     categoryId: 0,
-    amount: 0,
-    supplier: '',
-    invoiceRef: '',
-    notes: ''
+    amount: '' as number | string,
+    supplier: ''
   });
 
   const expenseMutation = useMutation({
@@ -37,7 +35,7 @@ export function Expenses() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses', selectedDate] });
       setShowModal(false);
-      setFormData({ categoryId: 0, amount: 0, supplier: '', invoiceRef: '', notes: '' });
+      setFormData({ categoryId: 0, amount: '', supplier: '' });
       alert('Expense recorded successfully!');
     },
     onError: (error: any) => {
@@ -187,35 +185,16 @@ export function Expenses() {
                   type="number"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
                   value={formData.amount}
-                  onChange={(e) => setFormData({...formData, amount: Number(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, amount: e.target.value === '' ? '' : Number(e.target.value)})}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-slate-700">Supplier</label>
-                  <input 
-                    type="text"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
-                    value={formData.supplier}
-                    onChange={(e) => setFormData({...formData, supplier: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-slate-700">Invoice Ref</label>
-                  <input 
-                    type="text"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
-                    value={formData.invoiceRef}
-                    onChange={(e) => setFormData({...formData, invoiceRef: e.target.value})}
-                  />
-                </div>
-              </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Notes</label>
-                <textarea 
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none min-h-[80px]"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                <label className="text-sm font-medium text-slate-700">Supplier</label>
+                <input 
+                  type="text"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
+                  value={formData.supplier}
+                  onChange={(e) => setFormData({...formData, supplier: e.target.value})}
                 />
               </div>
             </CardContent>

@@ -19,10 +19,9 @@ export function Sales() {
   });
 
   const [formData, setFormData] = useState({
-    blocksSold: 0,
-    unitPrice: 120, // Default price
-    customerName: '',
-    notes: ''
+    blocksSold: '' as number | string,
+    unitPrice: '' as number | string,
+    customerName: ''
   });
 
   const saleMutation = useMutation({
@@ -31,7 +30,7 @@ export function Sales() {
       queryClient.invalidateQueries({ queryKey: ['sales', selectedDate] });
       queryClient.invalidateQueries({ queryKey: ['basin'] }); // Update basin stock
       setShowModal(false);
-      setFormData({ blocksSold: 0, unitPrice: 120, customerName: '', notes: '' });
+      setFormData({ blocksSold: '', unitPrice: '', customerName: '' });
       alert('Sale recorded successfully!');
     },
     onError: (error: any) => {
@@ -168,7 +167,7 @@ export function Sales() {
                   type="number"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
                   value={formData.blocksSold}
-                  onChange={(e) => setFormData({...formData, blocksSold: Number(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, blocksSold: e.target.value === '' ? '' : Number(e.target.value)})}
                 />
               </div>
               <div className="space-y-1.5">
@@ -177,7 +176,7 @@ export function Sales() {
                   type="number"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
                   value={formData.unitPrice}
-                  onChange={(e) => setFormData({...formData, unitPrice: Number(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, unitPrice: e.target.value === '' ? '' : Number(e.target.value)})}
                 />
               </div>
               <div className="space-y-1.5">
@@ -188,15 +187,6 @@ export function Sales() {
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
                   value={formData.customerName}
                   onChange={(e) => setFormData({...formData, customerName: e.target.value})}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Notes</label>
-                <textarea 
-                  placeholder="Optional"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none min-h-[80px]"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
                 />
               </div>
             </CardContent>
