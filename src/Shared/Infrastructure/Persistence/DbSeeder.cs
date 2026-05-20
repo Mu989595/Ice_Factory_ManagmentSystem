@@ -39,7 +39,7 @@ public class DbSeeder
         var result = BasinAggregate.Create(
             maxCapacity:  1000,
             freezeHours:  8.0,
-            initialStock: 0);
+            initialStock: 950);
 
         if (result.IsFailure)
         {
