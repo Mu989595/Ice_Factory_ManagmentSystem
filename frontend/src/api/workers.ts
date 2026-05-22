@@ -12,6 +12,6 @@ export const createWorker = async (worker: CreateWorkerDto): Promise<{ id: numbe
 };
 
 export const updateWorkerWage = async (id: number, dailyWage: number): Promise<{ id: number; dailyWage: number }> => {
-  const { data } = await api.patch<{ id: number; dailyWage: number }>(`/workers/${id}/wage`, dailyWage);
+  const { data } = await api.patch<{ id: number; dailyWage: number }>(`/workers/${id}/wage`, { dailyWage });
   return data;
 };

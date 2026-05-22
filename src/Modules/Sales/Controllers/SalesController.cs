@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using IcePlant.Application;
 using IcePlant.Application.DTOs;
 using IcePlant.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,18 +11,20 @@ namespace IceFactoryManagmentSystem.Controllers;
 [Route("api/[controller]")]
 public class SalesController : ControllerBase
 {
-    private readonly SaleService _saleService;
+    private readonly ILogger<SalesController> _logger;
 
-    public SalesController(SaleService saleService)
+    public SalesController(SaleService saleService, ILogger<SalesController> logger)
     {
         _saleService = saleService;
+        _logger = logger;
     }
 
     /// <summary>
     /// Records a new ice sale for today's ledger.
     /// This automatically deducts the sold blocks from the basin via domain events.
     /// </summary>
-    [HttpPost]
+    [ProduceResponseType(typeof(ApiResponse<SaleResultDto>), StatusCodes.Status201Created)]
+    [ProduceResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RecordSale(
         [FromBody] RecordSaleDto dto,
         CancellationToken ct)
@@ -40,7 +43,8 @@ public class SalesController : ControllerBase
     /// Gets all sales for a specific date.
     /// Format for date parameter: YYYY-MM-DD
     /// </summary>
-    [HttpGet("date/{date}")]
+    [ProduceResponseType(typeof(ApiResponse<List<SaleResultDto>>), StatusCodes.Status200OK)]
+    [ProduceResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetSalesByDate(
         [FromRoute] DateOnly date,
         CancellationToken ct)

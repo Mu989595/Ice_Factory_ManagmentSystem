@@ -11,6 +11,9 @@ namespace IceFactoryManagmentSystem.Controllers;
 [Route("api/[controller]")]
 public class BasinController : ControllerBase
 {
+    public record ReplenishDto(int BlocksToAdd);
+    public record FreezeHoursDto(double Hours);
+
     private readonly IUnitOfWork _uow;
     private readonly IBasinRepository _basinRepo;
     private readonly ILedgerDayRepository _ledgerRepo;
@@ -44,8 +47,9 @@ public class BasinController : ControllerBase
     /// Manually adds stock to the basin.
     /// </summary>
     [HttpPost("replenish")]
-    public async Task<IActionResult> ManualReplenish([FromBody] int blocksToAdd, CancellationToken ct)
+    public async Task<IActionResult> ManualReplenish([FromBody] ReplenishDto dto, CancellationToken ct)
     {
+        var blocksToAdd = dto.BlocksToAdd;
         await _uow.BeginTransactionAsync(ct);
         try
         {
@@ -88,10 +92,10 @@ public class BasinController : ControllerBase
     /// Updates the time required for a complete freeze.
     /// </summary>
     [HttpPatch("freeze-hours")]
-    public async Task<IActionResult> UpdateFreezeHours([FromBody] double hours, CancellationToken ct)
+    public async Task<IActionResult> UpdateFreezeHours([FromBody] FreezeHoursDto dto, CancellationToken ct)
     {
         var basin = await _basinRepo.GetSingletonAsync(ct);
-        var result = basin.UpdateFreezeHours(hours);
+        var result = basin.UpdateFreezeHours(dto.Hours);
 
         if (result.IsFailure)
             return BadRequest(new { Error = result.Error });

@@ -7,12 +7,12 @@ export const getBasinState = async (): Promise<BasinState> => {
 };
 
 export const replenishBasin = async (blocks: number): Promise<{ currentStock: number }> => {
-  const { data } = await api.post<{ currentStock: number }>('/basin/replenish', blocks);
+  const { data } = await api.post<{ currentStock: number }>('/basin/replenish', { blocksToAdd: blocks });
   return data;
 };
 
 export const updateFreezeHours = async (hours: number): Promise<{ freezeHours: number }> => {
-  const { data } = await api.patch<{ freezeHours: number }>('/basin/freeze-hours', hours);
+  const { data } = await api.patch<{ freezeHours: number }>('/basin/freeze-hours', { hours });
   return data;
 };
 

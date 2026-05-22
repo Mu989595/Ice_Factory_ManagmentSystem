@@ -71,3 +71,12 @@ export default defineConfig([
   },
 ])
 ```
+
+---
+
+### 2. **Missing Input Validation on All Endpoints**
+
+**Problem**: Controllers accept DTOs without validation.
+
+**Example - Workers Controller**:
+

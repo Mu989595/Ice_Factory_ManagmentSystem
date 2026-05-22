@@ -40,6 +40,7 @@ public class WorkersController : ControllerBase
     }
 
     public record CreateWorkerDto(string FullName, WorkerRole Role, decimal DailyWage, DateOnly HiredAt);
+    public record UpdateWageDto(decimal DailyWage);
 
     /// <summary>
     /// Creates a new worker.
@@ -62,12 +63,12 @@ public class WorkersController : ControllerBase
     /// Updates a worker's daily wage.
     /// </summary>
     [HttpPatch("{id}/wage")]
-    public async Task<IActionResult> UpdateWage([FromRoute] int id, [FromBody] decimal newWage, CancellationToken ct)
+    public async Task<IActionResult> UpdateWage([FromRoute] int id, [FromBody] UpdateWageDto dto, CancellationToken ct)
     {
         var worker = await _workerRepo.GetByIdAsync(id, ct);
         if (worker == null) return NotFound();
 
-        var result = worker.UpdateDailyWage(newWage);
+        var result = worker.UpdateDailyWage(dto.DailyWage);
         if (result.IsFailure)
             return BadRequest(new { Error = result.Error });
 
