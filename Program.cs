@@ -50,6 +50,17 @@ namespace IceFactoryManagmentSystem
                         .GetSection("Cors:AllowedOrigins")
                         .Get<string[]>() ?? Array.Empty<string>();
 
+                    // Optional: Cors__AllowedOriginsCsv = "https://a.com,https://b.com"
+                    if (configuredOrigins.Length == 0)
+                    {
+                        var commaSeparated = builder.Configuration["Cors:AllowedOriginsCsv"];
+                        if (!string.IsNullOrWhiteSpace(commaSeparated))
+                        {
+                            configuredOrigins = commaSeparated
+                                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        }
+                    }
+
                     var allowedOrigins = configuredOrigins
                         .Where(o => !string.IsNullOrWhiteSpace(o))
                         .ToArray();

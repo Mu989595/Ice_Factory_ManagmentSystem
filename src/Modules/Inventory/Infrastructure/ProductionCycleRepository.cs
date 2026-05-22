@@ -22,6 +22,21 @@ public class ProductionCycleRepository
             .OrderBy(p => p.TriggeredAt)
             .ToListAsync(ct);
 
+    public async Task<IReadOnlyList<ProductionCycle>> GetByDateRangeAsync(
+        DateOnly from,
+        DateOnly to,
+        CancellationToken ct = default)
+    {
+        var fromUtc = from.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var toUtc = to.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+
+        return await _dbSet
+            .AsNoTracking()
+            .Where(p => p.TriggeredAt >= fromUtc && p.TriggeredAt <= toUtc)
+            .OrderByDescending(p => p.TriggeredAt)
+            .ToListAsync(ct);
+    }
+
     /// <summary>
     /// Returns true if any replenishment already fired after the given timestamp today.
     /// Prevents double-replenishment in the same freeze cycle.

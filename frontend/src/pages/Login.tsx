@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { authApi } from '../api/auth';
+import { authApi, getAuthErrorMessage } from '../api/auth';
 import { useAuth } from '../hooks/useAuth';
 import { Lock, User, Mail, UserPlus } from 'lucide-react';
 
@@ -33,8 +33,8 @@ export const Login = () => {
         login(response);
       }
       navigate(from, { replace: true });
-    } catch (err: any) {
-      setError(err.response?.data?.error || `Failed to ${isRegistering ? 'register' : 'login'}. Please check your inputs.`);
+    } catch (err: unknown) {
+      setError(getAuthErrorMessage(err, `Failed to ${isRegistering ? 'register' : 'login'}. Please check your inputs.`));
     } finally {
       setIsLoading(false);
     }
@@ -145,15 +145,17 @@ export const Login = () => {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <button
-            type="button"
-            onClick={toggleMode}
-            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-          >
-            {isRegistering ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-          </button>
-        </div>
+        {import.meta.env.DEV && (
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={toggleMode}
+              className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              {isRegistering ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

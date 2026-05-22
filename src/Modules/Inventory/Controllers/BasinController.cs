@@ -1,7 +1,8 @@
-using Microsoft.AspNetCore.Authorization;
+using IcePlant.Application.DTOs;
 using IcePlant.Domain.Enums;
 using IcePlant.Domain.Interfaces;
 using IcePlant.Domain.Interfaces.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IceFactoryManagmentSystem.Controllers;
@@ -25,6 +26,28 @@ public class BasinController : ControllerBase
         _basinRepo = basinRepo;
         _ledgerRepo = ledgerRepo;
         _productionRepo = productionRepo;
+    }
+
+    /// <summary>
+    /// Production / replenishment history. Optional query: startDate, endDate (yyyy-MM-dd).
+    /// </summary>
+    [HttpGet("production-log")]
+    [ProducesResponseType(typeof(List<ProductionCycleDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProductionLog(
+        [FromQuery] string? startDate,
+        [FromQuery] string? endDate,
+        CancellationToken ct)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var from = ParseDateOrDefault(startDate, today.AddDays(-30));
+        var to = ParseDateOrDefault(endDate, today);
+
+        if (from > to)
+            return BadRequest(new { error = "startDate must be on or before endDate." });
+
+        var cycles = await _productionRepo.GetByDateRangeAsync(from, to, ct);
+        var dtos = cycles.Select(MapToDto).ToList();
+        return Ok(dtos);
     }
 
     /// <summary>
@@ -104,6 +127,32 @@ public class BasinController : ControllerBase
         await _uow.SaveChangesAsync(ct);
 
         return Ok(new { basin.FreezeHours });
+    }
+
+    private static DateOnly ParseDateOrDefault(string? value, DateOnly fallback)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return fallback;
+        return DateOnly.TryParse(value, out var parsed) ? parsed : fallback;
+    }
+
+    private static ProductionCycleDto MapToDto(IcePlant.Domain.Aggregates.Basin.ProductionCycle cycle)
+    {
+        var trigger = cycle.TriggerReason switch
+        {
+            ReplenishmentTrigger.AutoTimer => "Auto",
+            ReplenishmentTrigger.Manual => "Manual",
+            ReplenishmentTrigger.Rollover => "Rollover",
+            _ => cycle.TriggerReason.ToString()
+        };
+
+        return new ProductionCycleDto(
+            cycle.Id,
+            cycle.TriggeredAt,
+            trigger,
+            cycle.BlocksAdded,
+            cycle.StockBefore,
+            cycle.StockAfter);
     }
 }
 

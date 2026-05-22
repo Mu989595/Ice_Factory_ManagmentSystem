@@ -24,6 +24,11 @@ public interface IProductionCycleRepository
     Task<bool> ExistsAfterAsync(DateTime timestamp, CancellationToken ct = default);
 
     Task<IReadOnlyList<ProductionCycle>> GetByDateAsync(DateOnly date, CancellationToken ct = default);
+
+    Task<IReadOnlyList<ProductionCycle>> GetByDateRangeAsync(
+        DateOnly from,
+        DateOnly to,
+        CancellationToken ct = default);
 }
 
 // ── Finance ───────────────────────────────────────────────────────────────────
