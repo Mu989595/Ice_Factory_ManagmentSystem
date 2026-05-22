@@ -46,26 +46,27 @@ namespace IceFactoryManagmentSystem
                 // ── CORS CONFIGURATION - SECURE ────────────────────────────────────
                 builder.Services.AddCors(options =>
                 {
-                    string[] allowedOrigins;
+                    var configuredOrigins = builder.Configuration
+                        .GetSection("Cors:AllowedOrigins")
+                        .Get<string[]>() ?? Array.Empty<string>();
 
-                    if (builder.Environment.IsDevelopment())
+                    var allowedOrigins = configuredOrigins
+                        .Where(o => !string.IsNullOrWhiteSpace(o))
+                        .ToArray();
+
+                    if (allowedOrigins.Length == 0 && builder.Environment.IsDevelopment())
                     {
-                        // Development: Allow localhost origins
-                        allowedOrigins = new[]
-                        {
-                            "http://localhost:5173",  // Vite default
-                            "http://localhost:3000",  // React default
+                        allowedOrigins =
+                        [
+                            "http://localhost:5173",
+                            "http://localhost:3000",
                             "http://127.0.0.1:5173"
-                        };
+                        ];
                     }
-                    else
+                    else if (allowedOrigins.Length == 0)
                     {
-                        // Production: Restrict to specific domain
-                        allowedOrigins = new[]
-                        {
-                            "https://yourdomain.com",
-                            "https://www.yourdomain.com"
-                        };
+                        Log.Warning(
+                            "No CORS origins configured. Set Cors__AllowedOrigins__0 (and __1, __2, …) in environment variables.");
                     }
 
                     options.AddPolicy("AllowedFrontend", policy =>
