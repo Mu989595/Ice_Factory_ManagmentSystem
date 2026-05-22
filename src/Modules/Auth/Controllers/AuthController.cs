@@ -19,8 +19,8 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    [ProduceResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
-    [ProduceResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
     {
         try
@@ -43,8 +43,8 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    [ProduceResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
-    [ProduceResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
     {
         try

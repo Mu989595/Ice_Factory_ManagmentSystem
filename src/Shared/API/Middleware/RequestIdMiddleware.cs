@@ -18,7 +18,7 @@ public class RequestIdMiddleware
     {
         var requestId = context.TraceIdentifier;
         context.Items["RequestId"] = requestId;
-        context.Response.Headers.Add("X-Request-ID", requestId);
+        context.Response.Headers["X-Request-ID"] = requestId;
 
         await _next(context);
     }

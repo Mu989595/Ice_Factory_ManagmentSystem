@@ -11,7 +11,7 @@ public class WorkerRepository : BaseRepository<Worker>, IWorkerRepository
 {
     public WorkerRepository(AppDbContext context) : base(context) { }
 
-    public async Task<Worker?> GetByIdAsync(int id, CancellationToken ct = default)
+    public new async Task<Worker?> GetByIdAsync(int id, CancellationToken ct = default)
         => await _dbSet.FindAsync([id], ct);
 
     public async Task<IReadOnlyList<Worker>> GetAllActiveAsync(CancellationToken ct = default)
