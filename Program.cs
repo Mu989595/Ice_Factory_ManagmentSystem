@@ -19,7 +19,6 @@ namespace IceFactoryManagmentSystem
                 var builder = WebApplication.CreateBuilder(args);
 
                 // ── LOGGING CONFIGURATION ──────────────────────────────────────────
-                // Configure Serilog for structured logging
                 Log.Logger = new LoggerConfiguration()
                     .MinimumLevel.Information()
                     .WriteTo.Console()
@@ -43,14 +42,13 @@ namespace IceFactoryManagmentSystem
                         o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                     });
 
-                // ── CORS CONFIGURATION - SECURE ────────────────────────────────────
+                // ── CORS CONFIGURATION ─────────────────────────────────────────────
                 builder.Services.AddCors(options =>
                 {
                     var configuredOrigins = builder.Configuration
                         .GetSection("Cors:AllowedOrigins")
                         .Get<string[]>() ?? Array.Empty<string>();
 
-                    // Optional: Cors__AllowedOriginsCsv = "https://a.com,https://b.com"
                     if (configuredOrigins.Length == 0)
                     {
                         var commaSeparated = builder.Configuration["Cors:AllowedOriginsCsv"];
@@ -91,7 +89,7 @@ namespace IceFactoryManagmentSystem
                     });
                 });
 
-                // ── SWAGGER/OPENAPI CONFIGURATION ─────────────────────────────────
+                // ── SWAGGER/OPENAPI CONFIGURATION ──────────────────────────────────
                 builder.Services.AddEndpointsApiExplorer();
                 builder.Services.AddSwaggerGen(options =>
                 {
@@ -136,7 +134,6 @@ namespace IceFactoryManagmentSystem
                     options.MapType<DateOnly>(() => new OpenApiSchema { Type = "string", Format = "date" });
                     options.MapType<TimeOnly>(() => new OpenApiSchema { Type = "string", Format = "time" });
 
-                    // Include XML comments if available
                     var xmlFile = System.IO.Path.Combine(System.AppContext.BaseDirectory, "IceFactoryManagmentSystem.xml");
                     if (System.IO.File.Exists(xmlFile))
                     {
@@ -212,8 +209,8 @@ namespace IceFactoryManagmentSystem
 
                 var app = builder.Build();
 
-                // ── MIDDLEWARE PIPELINE CONFIGURATION ──────────────────────────────
-                
+                // ── MIDDLEWARE PIPELINE ────────────────────────────────────────────
+
                 // 1. Global exception handling (MUST be first)
                 app.UseGlobalExceptionHandler();
 
@@ -230,16 +227,13 @@ namespace IceFactoryManagmentSystem
                     app.UseHttpsRedirection();
                 }
 
-                // 5. Swagger/OpenAPI (development only)
-                if (app.Environment.IsDevelopment())
+                // 5. Swagger — always enabled (remove if you want dev-only)
+                app.UseSwagger();
+                app.UseSwaggerUI(options =>
                 {
-                    app.UseSwagger();
-                    app.UseSwaggerUI(options =>
-                    {
-                        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Ice Factory API v1");
-                        options.RoutePrefix = string.Empty; // Serve at root
-                    });
-                }
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Ice Factory API v1");
+                    options.RoutePrefix = "swagger";
+                });
 
                 // 6. Security headers
                 app.Use(async (context, next) =>

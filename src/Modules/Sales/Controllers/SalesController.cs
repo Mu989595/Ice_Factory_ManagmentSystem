@@ -24,6 +24,7 @@ public class SalesController : ControllerBase
     /// Records a new ice sale for today's ledger.
     /// This automatically deducts the sold blocks from the basin via domain events.
     /// </summary>
+    [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<SaleResultDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RecordSale(
@@ -31,12 +32,10 @@ public class SalesController : ControllerBase
         CancellationToken ct)
     {
         var result = await _saleService.RecordSaleAsync(dto, ct);
-
         if (result.IsSuccess)
             return CreatedAtAction(nameof(GetSalesByDate),
                 new { date = DateOnly.FromDateTime(DateTime.Now).ToString("yyyy-MM-dd") },
                 result.Value);
-
         return BadRequest(new { Error = result.Error });
     }
 
@@ -44,6 +43,7 @@ public class SalesController : ControllerBase
     /// Gets all sales for a specific date.
     /// Format for date parameter: YYYY-MM-DD
     /// </summary>
+    [HttpGet("{date}")]
     [ProducesResponseType(typeof(ApiResponse<List<SaleResultDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetSalesByDate(
@@ -51,13 +51,8 @@ public class SalesController : ControllerBase
         CancellationToken ct)
     {
         var result = await _saleService.GetSalesByDateAsync(date, ct);
-
         if (result.IsSuccess)
             return Ok(result.Value);
-
         return BadRequest(new { Error = result.Error });
     }
 }
-
-
-
