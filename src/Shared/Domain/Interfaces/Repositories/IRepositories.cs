@@ -79,6 +79,12 @@ public interface IExpenseCategoryRepository
     Task<IReadOnlyList<ExpenseCategory>> GetByTypeAsync(ExpenseCategoryType type, CancellationToken ct = default);
 }
 
+public interface ITransactionHistoryRepository
+{
+    Task AddAsync(TransactionHistory transaction, CancellationToken ct = default);
+    Task<List<TransactionHistory>> GetByLedgerDayIdAsync(int ledgerDayId, CancellationToken ct = default);
+}
+
 // ── HR ────────────────────────────────────────────────────────────────────────
 
 public interface IWorkerRepository

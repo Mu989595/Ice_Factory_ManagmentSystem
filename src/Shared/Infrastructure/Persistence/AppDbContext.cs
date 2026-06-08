@@ -25,6 +25,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ProductionCycle>     ProductionCycles   { get; set; }
     public DbSet<ProfitSplit>         ProfitSplits       { get; set; }
     public DbSet<AuditLog>            AuditLogs          { get; set; }
+    public DbSet<TransactionHistory>   TransactionHistories { get; set; }
 
     // ── Model Configuration ──────────────────────────────────────────────────
     protected override void OnModelCreating(ModelBuilder modelBuilder)

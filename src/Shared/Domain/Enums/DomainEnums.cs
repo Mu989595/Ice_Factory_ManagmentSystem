@@ -44,3 +44,13 @@ public enum ReplenishmentTrigger
     Manual    = 2,
     Rollover  = 3
 }
+
+/// <summary>
+/// Type of financial transaction recorded in the transaction history.
+/// </summary>
+public enum TransactionType
+{
+    Sale          = 1,
+    Expense       = 2,
+    Replenishment = 3
+}

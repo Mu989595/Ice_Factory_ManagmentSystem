@@ -82,10 +82,12 @@ public static class DependencyInjection
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IMonthlySummaryRepository, Repositories.MonthlySummaryRepository>();
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IExpenseCategoryRepository, Repositories.ExpenseCategoryRepository>();
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IProductionCycleRepository, Repositories.ProductionCycleRepository>();
+        services.AddScoped<IcePlant.Domain.Interfaces.Repositories.ITransactionHistoryRepository, Repositories.TransactionHistoryRepository>();
         
         // ── Domain Events ─────────────────────────────────────────────────────
         services.AddScoped<IEventDispatcher, EventDispatcher>();
         services.AddTransient<IDomainEventHandler<IcePlant.Domain.Events.SaleRecordedEvent>, IcePlant.Application.EventHandlers.OnSaleRecorded_DeductBasinStock>();
+        services.AddTransient<IDomainEventHandler<IcePlant.Domain.Events.SaleRecordedEvent>, IcePlant.Application.EventHandlers.OnSaleRecorded_AddTransactionHistory>();
         services.AddTransient<IDomainEventHandler<IcePlant.Domain.Events.StockDeductedEvent>, IcePlant.Application.EventHandlers.OnStockDeducted_UpdateLedgerClosingStock>();
 
         // ── Seeder ────────────────────────────────────────────────────────────
