@@ -1,12 +1,13 @@
+using System.Text.Json;
 using IceFactoryManagmentSystem.Middleware;
 using IcePlant.Infrastructure;
 using IcePlant.Infrastructure.JsonConverters;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.AspNetCore;
-using System.Text.Json;
 
 namespace IceFactoryManagmentSystem
 {
@@ -40,6 +41,33 @@ namespace IceFactoryManagmentSystem
                     {
                         o.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
                         o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                    });
+                // JWT Authentication 
+                var jwtSecret = builder.Configuration["Jwt:Secret"];
+                var issuer = builder.Configuration["Jwt:Issuer"];
+                var aduience = builder.Configuration["Jwt:Audience"];
+
+                if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 32)
+                    throw new InvalidOperationException("JWT secret must be at least 32 acters long ");
+
+                builder.Services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                    .AddJwtBearer(options =>
+                    {
+                        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidIssuer = issuer,
+                            ValidateAudience = true,
+                            ValidAudience = aduience,
+                            ValidateIssuerSigningKey = true,
+                            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSecret)),
+                            ValidateLifetime = true,
+                            ClockSkew = TimeSpan.Zero
+                        };
                     });
 
                 // ── CORS CONFIGURATION ─────────────────────────────────────────────
@@ -225,6 +253,7 @@ namespace IceFactoryManagmentSystem
                 {
                     app.UseHsts();
                     app.UseHttpsRedirection();
+
                 }
 
                 // 5. Swagger — always enabled (remove if you want dev-only)
