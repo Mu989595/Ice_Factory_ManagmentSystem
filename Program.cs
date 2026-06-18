@@ -2,9 +2,7 @@ using System.Text.Json;
 using IceFactoryManagmentSystem.Middleware;
 using IcePlant.Infrastructure;
 using IcePlant.Infrastructure.JsonConverters;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.AspNetCore;
@@ -41,33 +39,6 @@ namespace IceFactoryManagmentSystem
                     {
                         o.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
                         o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                    });
-                // JWT Authentication 
-                var jwtSecret = builder.Configuration["Jwt:Secret"];
-                var issuer = builder.Configuration["Jwt:Issuer"];
-                var aduience = builder.Configuration["Jwt:Audience"];
-
-                if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 32)
-                    throw new InvalidOperationException("JWT secret must be at least 32 acters long ");
-
-                builder.Services.AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                    .AddJwtBearer(options =>
-                    {
-                        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-                        {
-                            ValidateIssuer = true,
-                            ValidIssuer = issuer,
-                            ValidateAudience = true,
-                            ValidAudience = aduience,
-                            ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSecret)),
-                            ValidateLifetime = true,
-                            ClockSkew = TimeSpan.Zero
-                        };
                     });
 
                 // ── CORS CONFIGURATION ─────────────────────────────────────────────
@@ -172,22 +143,7 @@ namespace IceFactoryManagmentSystem
                 // ── INFRASTRUCTURE & DATABASE ──────────────────────────────────────
                 builder.Services.AddInfrastructure(builder.Configuration);
 
-                // ── PASSWORD POLICY CONFIGURATION ──────────────────────────────────
-                builder.Services.Configure<IdentityOptions>(options =>
-                {
-                    options.Password.RequiredLength = 12;
-                    options.Password.RequireDigit = true;
-                    options.Password.RequireUppercase = true;
-                    options.Password.RequireLowercase = true;
-                    options.Password.RequireNonAlphanumeric = true;
-                    options.Password.RequiredUniqueChars = 6;
 
-                    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-                    options.Lockout.MaxFailedAccessAttempts = 5;
-                    options.Lockout.AllowedForNewUsers = true;
-
-                    options.User.RequireUniqueEmail = true;
-                });
 
                 // ── RATE LIMITING CONFIGURATION ────────────────────────────────────
                 builder.Services.AddRateLimiter(options =>

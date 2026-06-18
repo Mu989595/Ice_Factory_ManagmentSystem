@@ -1,17 +1,14 @@
 namespace IcePlant.Application.DTOs;
 
-public record RegisterRequestDto(
-    string Username,
-    string Email,
-    string Password,
-    string FullName);
-
+/// <summary>
+/// Simple PIN-based login — no username needed.
+/// </summary>
 public record LoginRequestDto(
-    string Username,
     string Password);
 
+/// <summary>
+/// Response after successful login.
+/// </summary>
 public record AuthResponseDto(
     string Token,
-    DateTime Expiration,
-    string Username,
-    string FullName);
+    DateTime Expiration);

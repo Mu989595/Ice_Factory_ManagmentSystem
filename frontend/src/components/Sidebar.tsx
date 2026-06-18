@@ -11,6 +11,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useAuth } from '../hooks/useAuth';
 
 const navGroups = [
   {
@@ -39,6 +40,8 @@ const navGroups = [
 ];
 
 export function Sidebar() {
+  const { logout } = useAuth();
+  
   return (
     <aside className="fixed left-0 top-0 h-screen w-[220px] bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 z-50">
       <div className="p-6 flex items-center gap-3">
@@ -81,13 +84,17 @@ export function Sidebar() {
       <div className="p-4 border-t border-slate-800 mt-auto">
         <div className="flex items-center gap-3 px-3 py-2">
           <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-medium text-white">
-            AD
+            SYS
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">Admin User</p>
-            <p className="text-xs text-slate-500 truncate">System Manager</p>
+            <p className="text-sm font-medium text-white truncate">Admin</p>
+            <p className="text-xs text-slate-500 truncate">System Access</p>
           </div>
-          <button className="text-slate-500 hover:text-white transition-colors">
+          <button 
+            onClick={logout}
+            className="text-slate-500 hover:text-white transition-colors"
+            title="Lock System"
+          >
             <LogOut className="w-4 h-4" />
           </button>
         </div>
