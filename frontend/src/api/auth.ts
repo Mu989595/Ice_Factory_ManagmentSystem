@@ -5,6 +5,10 @@ export interface LoginRequestDto {
   password?: string;
 }
 
+export interface AuthStatusDto {
+  isInitialized: boolean;
+}
+
 export interface AuthResponseDto {
   token: string;
   expiration: string;
@@ -19,6 +23,14 @@ export function getAuthErrorMessage(err: unknown, fallback: string): string {
 }
 
 export const authApi = {
+  status: async (): Promise<AuthStatusDto> => {
+    const { data } = await api.get<AuthStatusDto>('/auth/status');
+    return data;
+  },
+  setup: async (request: LoginRequestDto): Promise<AuthResponseDto> => {
+    const { data } = await api.post<AuthResponseDto>('/auth/setup', request);
+    return data;
+  },
   login: async (request: LoginRequestDto): Promise<AuthResponseDto> => {
     const { data } = await api.post<AuthResponseDto>('/auth/login', request);
     return data;

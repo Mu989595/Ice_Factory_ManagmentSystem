@@ -11,32 +11,49 @@ namespace IcePlant.Application.Services;
 
 /// <summary>
 /// Simple PIN-based authentication.
-/// Validates the system PIN from configuration and issues a JWT token.
-/// No database users, no Identity — just a single system password.
+/// Validates against a system_pin.txt file created by the user on first launch.
 /// </summary>
 public class AuthService : IAuthService
 {
     private readonly IConfiguration _configuration;
+    private readonly string _pinFilePath = Path.Combine(Directory.GetCurrentDirectory(), "system_pin.txt");
 
     public AuthService(IConfiguration configuration)
     {
         _configuration = configuration;
     }
 
-    public Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request)
+    public Task<bool> IsSystemInitializedAsync()
     {
-        var systemPin = _configuration["SystemPin"];
+        return Task.FromResult(File.Exists(_pinFilePath));
+    }
 
-        if (string.IsNullOrEmpty(systemPin))
-            return Task.FromResult(
-                Result.Failure<AuthResponseDto>("System PIN is not configured."));
+    public async Task<Result<AuthResponseDto>> SetupSystemAsync(string pin)
+    {
+        if (File.Exists(_pinFilePath))
+            return Result.Failure<AuthResponseDto>("System is already initialized.");
 
-        if (request.Password != systemPin)
-            return Task.FromResult(
-                Result.Failure<AuthResponseDto>("كلمة السر غلط."));
+        if (string.IsNullOrWhiteSpace(pin) || pin.Length < 4)
+            return Result.Failure<AuthResponseDto>("كلمة السر يجب أن تكون 4 رموز على الأقل.");
+
+        await File.WriteAllTextAsync(_pinFilePath, pin);
+        
+        var result = GenerateToken();
+        return Result.Success(result);
+    }
+
+    public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request)
+    {
+        if (!File.Exists(_pinFilePath))
+            return Result.Failure<AuthResponseDto>("النظام غير مهيأ بعد. يرجى إعداد كلمة السر أولاً.");
+
+        var savedPin = await File.ReadAllTextAsync(_pinFilePath);
+
+        if (request.Password != savedPin.Trim())
+            return Result.Failure<AuthResponseDto>("كلمة السر غلط.");
 
         var result = GenerateToken();
-        return Task.FromResult(Result.Success(result));
+        return Result.Success(result);
     }
 
     private AuthResponseDto GenerateToken()
