@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { 
   TrendingUp, 
@@ -17,6 +18,7 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const today = format(new Date(), 'yyyy-MM-dd');
 
   const { data: basin } = useQuery({ queryKey: ['basin'], queryFn: getBasinState });
@@ -41,10 +43,10 @@ export function Dashboard() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-slate-900">System Overview</h1>
         <div className="flex gap-3">
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => navigate('/expenses')}>
             <Plus className="w-4 h-4" /> Add Expense
           </Button>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => navigate('/sales')}>
             <Plus className="w-4 h-4" /> New Sale
           </Button>
         </div>
