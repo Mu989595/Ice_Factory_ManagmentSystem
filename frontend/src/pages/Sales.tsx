@@ -27,7 +27,7 @@ export function Sales() {
   const saleMutation = useMutation({
     mutationFn: (data: any) => recordSale({ ...data, ledgerDayId: 1 }), // simplified ledgerDayId
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sales', selectedDate] });
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
       queryClient.invalidateQueries({ queryKey: ['basin'] }); // Update basin stock
       setShowModal(false);
       setFormData({ blocksSold: '', unitPrice: '', customerName: '' });
@@ -52,8 +52,8 @@ export function Sales() {
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:flex-none">
             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            <input 
-              type="date" 
+            <input
+              type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               className="pl-10 pr-4 py-2 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary/20 outline-none w-full"
@@ -92,8 +92,8 @@ export function Sales() {
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                placeholder="Search customer..." 
+              <input
+                placeholder="Search customer..."
                 className="pl-9 pr-4 py-1.5 border rounded-md text-sm bg-slate-50 focus:bg-white transition-all outline-none"
               />
             </div>
@@ -163,30 +163,30 @@ export function Sales() {
             <CardContent className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-700">Blocks Sold</label>
-                <input 
+                <input
                   type="number"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
                   value={formData.blocksSold}
-                  onChange={(e) => setFormData({...formData, blocksSold: e.target.value === '' ? '' : Number(e.target.value)})}
+                  onChange={(e) => setFormData({ ...formData, blocksSold: e.target.value === '' ? '' : Number(e.target.value) })}
                 />
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-700">Unit Price (EGP)</label>
-                <input 
+                <input
                   type="number"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
                   value={formData.unitPrice}
-                  onChange={(e) => setFormData({...formData, unitPrice: e.target.value === '' ? '' : Number(e.target.value)})}
+                  onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value === '' ? '' : Number(e.target.value) })}
                 />
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-700">Customer Name</label>
-                <input 
+                <input
                   type="text"
                   placeholder="Optional"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
                   value={formData.customerName}
-                  onChange={(e) => setFormData({...formData, customerName: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                 />
               </div>
             </CardContent>
