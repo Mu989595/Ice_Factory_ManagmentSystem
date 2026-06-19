@@ -3,14 +3,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './hooks/useAuth';
-import { 
-  Dashboard, 
-  Basin, 
-  Sales, 
-  Expenses, 
-  Workers, 
-  Attendance, 
-  MonthlySummary, 
+import {
+  Dashboard,
+  Basin,
+  Sales,
+  Expenses,
+  Workers,
+  Attendance,
+  MonthlySummary,
   ProductionLog,
   Login
 } from './pages';

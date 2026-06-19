@@ -43,7 +43,7 @@ public class SalesController : ControllerBase
     /// Gets all sales for a specific date.
     /// Format for date parameter: YYYY-MM-DD
     /// </summary>
-    [HttpGet("{date}")]
+    [HttpGet("date/{date}")]
     [ProducesResponseType(typeof(ApiResponse<List<SaleResultDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetSalesByDate(
