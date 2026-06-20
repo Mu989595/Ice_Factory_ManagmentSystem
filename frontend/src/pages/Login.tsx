@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authApi, getAuthErrorMessage } from '../api/auth';
 import { useAuth } from '../hooks/useAuth';
-import { Lock, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, Lock, UserPlus } from 'lucide-react';
 
-export const Login = () => {
+export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -44,7 +45,7 @@ export const Login = () => {
       login(response);
       navigate(from, { replace: true });
     } catch (err: unknown) {
-      setError(getAuthErrorMessage(err, needsSetup ? 'Failed to setup PIN.' : 'Failed to login. Please check your PIN.'));
+      setError(getAuthErrorMessage(err, needsSetup ? 'Failed to setup PIN.' : 'Invalid PIN.'));
     } finally {
       setIsLoading(false);
     }
@@ -52,55 +53,69 @@ export const Login = () => {
 
   if (isInitializing) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-        <div className="text-white text-lg animate-pulse">Loading system...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="text-gray-500 text-lg animate-pulse">Loading system...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <div className="max-w-md w-full bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
-        <div className="text-center mb-8">
-          <div className="mx-auto bg-blue-500/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-            {needsSetup ? <UserPlus className="h-8 w-8 text-blue-400" /> : <Lock className="h-8 w-8 text-blue-400" />}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+        <div className="text-center">
+          <div className="mx-auto bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mb-6 shadow-sm">
+            {needsSetup ? <UserPlus className="h-8 w-8 text-blue-600" /> : <Lock className="h-8 w-8 text-blue-600" />}
           </div>
-          <h2 className="text-3xl font-bold text-white">Ice Factory ERP</h2>
-          <p className="text-gray-400 mt-2">
-            {needsSetup ? 'Welcome! Create a PIN to secure your system.' : 'System Locked. Enter PIN to unlock.'}
+          <h2 className="text-3xl font-extrabold text-gray-900">
+            {needsSetup ? 'Set System PIN' : 'System Locked'}
+          </h2>
+          <p className="mt-2 text-sm text-gray-500">
+            {needsSetup ? 'Create a secure PIN to initialize your ERP system.' : 'Enter your secure PIN to access the dashboard.'}
           </p>
         </div>
 
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-lg mb-6 text-sm text-center">
-            {error}
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          {error && (
+            <div className="rounded-lg bg-red-50 p-4 border border-red-100 text-sm text-red-700 text-center font-medium">
+              {error}
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              {needsSetup ? 'New System PIN' : 'System PIN'}
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-500" />
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                {needsSetup ? 'New PIN' : 'System PIN'}
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm transition-all"
+                  placeholder={needsSetup ? "Enter at least 4 characters" : "••••••••"}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
-              <input
-                type="password"
-                required
-                className="block w-full pl-10 pr-3 py-2 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder={needsSetup ? 'Enter 4+ characters' : 'Enter PIN'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             {isLoading ? 'Processing...' : needsSetup ? 'Set PIN & Enter' : 'Unlock System'}
           </button>
