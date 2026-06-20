@@ -5,7 +5,6 @@ import {
   ShoppingCart, 
   Receipt, 
   Users, 
-  CalendarCheck, 
   BarChart3, 
   ClipboardList,
   LogOut
@@ -27,7 +26,6 @@ const navGroups = [
     title: 'HR',
     links: [
       { name: 'Workers', href: '/workers', icon: Users },
-      { name: 'Attendance', href: '/attendance', icon: CalendarCheck },
     ]
   },
   {

@@ -11,7 +11,6 @@ import {
 import { getBasinState } from '../api/basin';
 import { getSalesByDate } from '../api/sales';
 import { getExpensesByDate } from '../api/expenses';
-import { getAttendanceByDate } from '../api/attendance';
 import { formatCurrency, getArabicRole, cn } from '../lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -24,7 +23,6 @@ export function Dashboard() {
   const { data: basin } = useQuery({ queryKey: ['basin'], queryFn: getBasinState });
   const { data: sales } = useQuery({ queryKey: ['sales', today], queryFn: () => getSalesByDate(today) });
   const { data: expenses } = useQuery({ queryKey: ['expenses', today], queryFn: () => getExpensesByDate(today) });
-  const { data: attendance } = useQuery({ queryKey: ['attendance', today], queryFn: () => getAttendanceByDate(today) });
 
   const todayIncome = sales?.reduce((acc, s) => acc + s.totalAmount, 0) || 0;
   const todayExpenses = expenses?.reduce((acc, e) => acc + e.amount, 0) || 0;
@@ -132,33 +130,6 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-bold text-slate-900">Attendance Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {attendance?.map((worker) => (
-                <div key={worker.workerId} className="flex items-center justify-between group">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                      {worker.workerName.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">{worker.workerName}</p>
-                      <p className="text-[10px] text-slate-500 font-arabic">{getArabicRole(worker.workerName)}</p>
-                    </div>
-                  </div>
-                  <div className={cn(
-                    "w-2 h-2 rounded-full",
-                    worker.attended ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
-                  )} />
-                </div>
-              ))}
-              {(!attendance || attendance.length === 0) && (
-                <p className="text-center text-slate-400 text-sm py-2">No data yet</p>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
 

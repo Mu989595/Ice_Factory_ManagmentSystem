@@ -9,7 +9,6 @@ import {
   Sales,
   Expenses,
   Workers,
-  Attendance,
   MonthlySummary,
   ProductionLog,
   Login
@@ -38,7 +37,6 @@ function App() {
                 <Route path="sales" element={<Sales />} />
                 <Route path="expenses" element={<Expenses />} />
                 <Route path="workers" element={<Workers />} />
-                <Route path="attendance" element={<Attendance />} />
                 <Route path="monthly" element={<MonthlySummary />} />
                 <Route path="production" element={<ProductionLog />} />
               </Route>

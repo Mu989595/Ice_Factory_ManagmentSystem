@@ -3,7 +3,6 @@ export { Basin } from './Basin';
 export { Sales } from './Sales';
 export { Expenses } from './Expenses';
 export { Workers } from './Workers';
-export { Attendance } from './Attendance';
 export { MonthlySummary } from './MonthlySummary';
 export { ProductionLog } from './ProductionLog';
 export { Login } from './Login';

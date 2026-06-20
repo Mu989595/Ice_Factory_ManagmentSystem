@@ -78,7 +78,6 @@ public static class DependencyInjection
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.ISaleRepository, Repositories.SaleRepository>();
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IExpenseRepository, Repositories.ExpenseRepository>();
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IWorkerRepository, Repositories.WorkerRepository>();
-        services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IAttendanceRepository, Repositories.AttendanceRepository>();
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IMonthlySummaryRepository, Repositories.MonthlySummaryRepository>();
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IExpenseCategoryRepository, Repositories.ExpenseCategoryRepository>();
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IProductionCycleRepository, Repositories.ProductionCycleRepository>();

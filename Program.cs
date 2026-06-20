@@ -184,7 +184,6 @@ namespace IceFactoryManagmentSystem
                     .AddDbContextCheck<IcePlant.Infrastructure.Persistence.AppDbContext>(name: "Database");
 
                 // ── APPLICATION SERVICES ───────────────────────────────────────────
-                builder.Services.AddScoped<IcePlant.Application.Services.AttendanceService>();
                 builder.Services.AddScoped<IcePlant.Application.Services.SaleService>();
                 builder.Services.AddScoped<IcePlant.Application.Services.ExpenseService>();
                 builder.Services.AddScoped<IcePlant.Application.Services.ReportService>();
