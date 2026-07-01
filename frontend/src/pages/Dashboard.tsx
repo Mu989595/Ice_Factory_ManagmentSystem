@@ -11,7 +11,7 @@ import {
 import { getBasinState } from '../api/basin';
 import { getSalesByDate } from '../api/sales';
 import { getExpensesByDate } from '../api/expenses';
-import { formatCurrency, getArabicRole, cn } from '../lib/utils';
+import { formatCurrency, cn } from '../lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';

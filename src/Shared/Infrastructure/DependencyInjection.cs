@@ -82,6 +82,7 @@ public static class DependencyInjection
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IExpenseCategoryRepository, Repositories.ExpenseCategoryRepository>();
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IProductionCycleRepository, Repositories.ProductionCycleRepository>();
         services.AddScoped<IcePlant.Domain.Interfaces.Repositories.ITransactionHistoryRepository, Repositories.TransactionHistoryRepository>();
+        services.AddScoped<IcePlant.Domain.Interfaces.Repositories.IAttendanceRepository, Repositories.AttendanceRepository>();
         
         // ── Domain Events ─────────────────────────────────────────────────────
         services.AddScoped<IEventDispatcher, EventDispatcher>();
